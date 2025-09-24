@@ -53,7 +53,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
               <input
                 type="text"
                 placeholder="Find restaurant offers and deals"
-                className="w-full md:w-auto flex-1 px-3 py-1 border border-gray-300 rounded-full text-sm"
+                className="w-full md:w-[300px] flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm"
                 onChange={(e) => onSearch(e.target.value)}
               />
               <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm">Search</button>
