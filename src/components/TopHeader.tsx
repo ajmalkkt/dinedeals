@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { SHOW_PRODUCTS, SHOW_COUPONS } from "../config/appConfig";
+import { SHOW_OFFERS } from "../config/appConfig";
 
 interface Props {
   onSearch: (q: string) => void;
@@ -44,9 +46,15 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
             </div>
             {/* Level 2: nav buttons */}
             <div className="flex flex-row items-center gap-2 md:ml-4 md:w-auto w-full overflow-x-auto md:overflow-x-visible">
-              <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm">Offers</button>
-              <button className="bg-blue-600 text-white px-5 py-1 rounded-full font-medium text-sm">Products</button>
-              <button className="bg-blue-600 text-white px-5 py-1 rounded-full font-medium text-sm">Coupons</button>
+              {SHOW_OFFERS && (
+                <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm">Offers</button>
+              )}
+              {SHOW_PRODUCTS && (
+                <button className="bg-blue-600 text-white px-5 py-1 rounded-full font-medium text-sm">Products</button>
+              )}
+              {SHOW_COUPONS && (
+                <button className="bg-blue-600 text-white px-5 py-1 rounded-full font-medium text-sm">Coupons</button>
+              )}
             </div>
             {/* Level 3: search bar, country dropdown, hamburger (desktop only) */}
             <div className="flex flex-row items-center gap-2 w-full">

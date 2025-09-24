@@ -1,4 +1,5 @@
 import React from "react";
+import { SHOW_ENTERTAINMENT, SHOW_FINANCIAL_SERVICE } from "../config/appConfig";
 
 interface Props {
   selectedCategory: string;
@@ -11,8 +12,8 @@ export default function SecondaryNav({ selectedCategory, onSelectCategory }: Pro
     "Malls",
     "Independent Restaurants",
     "Catering Services",
-    "Entertainment",
-    "Financial Service",
+    ...(SHOW_ENTERTAINMENT ? ["Entertainment"] : []),
+    ...(SHOW_FINANCIAL_SERVICE ? ["Financial Service"] : []),
   ];
 
   return (
