@@ -18,7 +18,10 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between w-full">
             {/* Level 1: logo, country dropdown, hamburger menu (mobile only) */}
             <div className="flex flex-row items-center justify-between w-full">
-              <div className="bg-orange-500 text-white px-3 py-1 rounded-lg font-bold text-lg">DineDeals</div>
+              <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1 rounded-lg font-bold text-lg">
+                <img src="/browseQtr.jpg" alt="DineDeals Icon" className="w-7 h-7 rounded-full mr-1" />
+                DineDeals
+              </div>
               <div className="flex md:hidden items-center gap-2">
                 <select
                   value={selectedCountry}
