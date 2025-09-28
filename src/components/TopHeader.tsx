@@ -19,7 +19,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
             {/* Level 1: logo, country dropdown, hamburger menu (mobile only) */}
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1 rounded-lg font-bold text-lg">
-                <img src="/browseQtr.jpg" alt="DineDeals Icon" className="w-7 h-7 rounded-full mr-1" />
+                <img src="/browseQtr.webp" alt="DineDeals Icon" className="w-7 h-7 rounded-full mr-1" />
                 DineDeals
               </div>
               <div className="flex md:hidden items-center gap-2">
