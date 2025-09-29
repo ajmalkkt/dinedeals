@@ -20,13 +20,13 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
             <div className="flex flex-row items-center justify-between w-full">
               <div className="flex items-center gap-1 bg-orange-500 text-white px-3 py-1 rounded-lg font-bold text-lg">
                 <img src="/browseQtr.webp" alt="DineDeals Icon" className="w-7 h-7 rounded-full mr-1" />
-                DineDeals
+                <span className="w-[80%] block truncate">DineDeals</span>
               </div>
               <div className="flex md:hidden items-center gap-2">
                 <select
                   value={selectedCountry}
                   onChange={(e) => onSelectCountry(e.target.value)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer"
+                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[70%] min-w-[90px] max-w-[140px] ml-auto block"
                 >
                   <option value="Qatar">🇶🇦 QA-EN</option>
                   <option value="UAE">🇦🇪 AE-EN</option>
@@ -64,7 +64,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
               <input
                 type="text"
                 placeholder="Find restaurant offers and deals"
-                className="w-full md:w-[300px] flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm"
+                className="w-[80%] md:w-[80%] flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm"
                 onChange={(e) => onSearch(e.target.value)}
               />
               <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm">Search</button>
@@ -72,7 +72,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
                 <select
                   value={selectedCountry}
                   onChange={(e) => onSelectCountry(e.target.value)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer"
+                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[70%] min-w-[90px] max-w-[140px] ml-auto block"
                 >
                   <option value="Qatar">QA-EN</option>
                   <option value="UAE">AE-EN</option>

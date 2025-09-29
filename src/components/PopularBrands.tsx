@@ -10,6 +10,14 @@ export default function PopularBrands({ brands = [] }: Props) {
   const brandsRef = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
+  const [spotlightIdx, setSpotlightIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSpotlightIdx((idx) => (idx === 0 ? 1 : 0));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const el = brandsRef.current;
@@ -55,7 +63,15 @@ export default function PopularBrands({ brands = [] }: Props) {
     <section className="mb-2">
       <div className="bg-gray-50 rounded-lg border p-2 relative overflow-hidden">
         <div className="flex items-center justify-between mb-1 px-2">
-          <h3 className="text-lg font-semibold">Popular Restaurants & Malls</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold animate-pulse">In the Spotlight</h3>
+            <img
+              src={spotlightIdx === 0 ? "/images/spotlight.gif" : "/images/spotlight-food.gif"}
+              alt="Spotlight"
+              className="w-8 h-8 animate-bounce"
+              onError={(e) => { e.currentTarget.src = '/images/offers/offer-1.jpg'; }}
+            />
+          </div>
         </div>
 
         <div className="relative">

@@ -168,7 +168,7 @@ export default function Home() {
 
         {/* Offers grid */}
         <section>
-          <h2 className="text-2xl font-semibold mb-1.5">Available Offers</h2>
+          <h2 className="text-2xl font-semibold mb-1.5">Hey, what's on your mind?</h2>
           <OffersGrid
             offers={filteredOffers}
             restaurants={restaurants}

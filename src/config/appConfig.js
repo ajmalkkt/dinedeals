@@ -1,3 +1,5 @@
+// Feature flag to enable/disable Offer Type filter
+export const SHOW_OFFER_TYPE_FILTER = false;
 
 // Application-level constants and options derived from the mock data so
 // components can import a single source of truth that stays in sync with
@@ -73,4 +75,5 @@ export default {
   SHOW_ENTERTAINMENT,
   SHOW_FINANCIAL_SERVICE,
   SHOW_OFFERS,
+  SHOW_OFFER_TYPE_FILTER,
 };

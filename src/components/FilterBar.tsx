@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { cuisineOptions as cfgCuisineOptions, locationOptions as cfgLocationOptions, offerTypeOptions as cfgOfferTypeOptions } from "../config/appConfig";
+import { cuisineOptions as cfgCuisineOptions, locationOptions as cfgLocationOptions, offerTypeOptions as cfgOfferTypeOptions, SHOW_OFFER_TYPE_FILTER } from "../config/appConfig";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -115,8 +115,18 @@ const FilterBar = ({ onFilterChange = () => {} }: FilterBarProps) => {
     selectedOfferTypes.length;
 
   return (
-    <div className="w-full bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-      <div className="flex flex-wrap items-center gap-3">
+  <div className="w-full bg-white p-2 rounded-lg shadow-sm border border-gray-100">
+      {/* Small heading with filter icon */}
+  <div className="flex items-center gap-1 mb-1">
+        <span className="inline-block w-4 h-4 text-gray-500">
+          {/* Inline SVG for filter icon */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707l-6.414 6.414A2 2 0 0013 14.586V19a1 1 0 01-1.447.894l-2-1A1 1 0 019 18v-3.414a2 2 0 00-.293-1.172L2.293 6.707A1 1 0 012 6V4z" />
+          </svg>
+        </span>
+        <span className="text-gray-700 font-semibold text-sm tracking-wide uppercase">Filters</span>
+      </div>
+  <div className="flex flex-wrap items-center gap-2">
         {/* Cuisine Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -169,31 +179,33 @@ const FilterBar = ({ onFilterChange = () => {} }: FilterBarProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Offer Type Filter */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              Offer Type
-              {selectedOfferTypes.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {selectedOfferTypes.length}
-                </Badge>
-              )}
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            {offerTypeOptions.map((offerType) => (
-              <DropdownMenuCheckboxItem
-                key={offerType}
-                checked={selectedOfferTypes.includes(offerType)}
-                onCheckedChange={() => handleOfferTypeChange(offerType)}
-              >
-                {offerType}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Offer Type Filter (conditionally rendered) */}
+        {SHOW_OFFER_TYPE_FILTER && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                Offer Type
+                {selectedOfferTypes.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedOfferTypes.length}
+                  </Badge>
+                )}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              {offerTypeOptions.map((offerType) => (
+                <DropdownMenuCheckboxItem
+                  key={offerType}
+                  checked={selectedOfferTypes.includes(offerType)}
+                  onCheckedChange={() => handleOfferTypeChange(offerType)}
+                >
+                  {offerType}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         {/* Clear Filters Button */}
         {totalActiveFilters > 0 && (
