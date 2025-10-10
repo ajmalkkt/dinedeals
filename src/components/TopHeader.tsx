@@ -43,6 +43,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
                   <div className="absolute right-0 top-10 w-40 bg-white rounded shadow-lg z-10">
                     <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">LOGIN</button>
                     <a href="#" className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</a>
+                    <a href="/admin" className="block w-full text-left px-4 py-2 text-green-700 hover:bg-gray-100">Admin Panel</a>
                   </div>
                 )}
               </div>
@@ -89,6 +90,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
                   <div className="absolute right-0 top-10 w-40 bg-white rounded shadow-lg z-10">
                     <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">LOGIN</button>
                     <a href="#" className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</a>
+                    <a href="/admin" className="block w-full text-left px-4 py-2 text-green-700 hover:bg-gray-100">Admin Panel</a>
                   </div>
                 )}
               </div>

@@ -7,7 +7,7 @@
     "rating": 4.5,
     "cuisine": ["Indian", "Asian"],
   "logoUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=spicegarden",
-  "brandUrl": "/images/hotel-1.svg",
+  "brandUrl": "/images/restaurants/restaurant-1.jpg",
     "country": "Qatar"
   },
   {
@@ -18,7 +18,7 @@
     "rating": 4.2,
     "cuisine": ["Italian", "Fast Food"],
   "logoUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=pizzafiesta",
-  "brandUrl": "/images/hotel-2.svg",
+  "brandUrl": "/images/restaurants/restaurant-10.jpg",
     "country": "UAE"
   },
   {
@@ -40,7 +40,7 @@
     "rating": 4.6,
     "cuisine": ["Japanese", "Asian"],
   "logoUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=sushipalace",
-  "brandUrl": "/images/hotel-4.svg",
+  "brandUrl": "/images/restaurants/restaurant-4.jpg",
     "country": "Qatar"
   },
   {
@@ -62,7 +62,7 @@
     "rating": 4.4,
     "cuisine": ["Multi-cuisine", "Indian", "Chinese"],
   "logoUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=familydining",
-  "brandUrl": "/images/hotel-6.svg",
+  "brandUrl": "/images/restaurants/restaurant-6.jpg",
     "country": "UAE"
   },
   {
@@ -84,7 +84,7 @@
     "rating": 4.8,
     "cuisine": ["Multi-cuisine", "Catering"],
   "logoUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=elite",
-  "brandUrl": "/images/hotel-8.svg",
+  "brandUrl": "/images/restaurants/restaurant-8.jpg",
     "country": "UAE"
   }
 ]

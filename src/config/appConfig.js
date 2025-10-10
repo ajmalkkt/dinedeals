@@ -1,6 +1,12 @@
 // Feature flag to enable/disable Offer Type filter
 export const SHOW_OFFER_TYPE_FILTER = false;
 
+// Feature flag to show/hide offer details in OffersGrid
+export const SHOW_OFFER_DETAIL = true;
+
+// Feature flag to show/hide avatar (restaurant logo) on offer image
+export const SHOW_OFFER_AVATAR = false;
+
 // Application-level constants and options derived from the mock data so
 // components can import a single source of truth that stays in sync with
 // `src/data/offers.json` and `src/data/restaurants.json`.
@@ -53,7 +59,7 @@ export const countryMap = {
   "Saudi Arabia": "Saudi Arabia",
 };
 
-export const DEFAULT_COUNTRY = "All";
+export const DEFAULT_COUNTRY = "Qatar";
 export const DEFAULT_CATEGORY = "All Offers";
 
 // Feature flags for showing/hiding buttons/links

@@ -8,8 +8,7 @@ handlers:
   - url: /.*
     static_files: dist/index.html
     upload: dist/index.html
-    http_methods: [GET]
-
+    
   # Error handler for other methods
   - url: /.*
     script: auto

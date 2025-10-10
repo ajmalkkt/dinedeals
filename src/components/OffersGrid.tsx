@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Skeleton } from "./ui/skeleton";
+import { SHOW_OFFER_AVATAR } from "../config/appConfig";
 
 interface Offer {
   id: number;
@@ -26,16 +27,21 @@ interface Restaurant {
   logoUrl: string;
 }
 
+
 interface OfferCardProps {
   offer: Offer;
   restaurantName: string;
   restaurantLogo: string;
+  showOfferDetail?: boolean;
+  showOfferAvatar?: boolean;
 }
 
 const OfferCard: React.FC<OfferCardProps> = ({
   offer,
   restaurantName,
   restaurantLogo,
+  showOfferDetail = true,
+  showOfferAvatar = true,
 }) => {
   return (
     <div className="bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -51,45 +57,49 @@ const OfferCard: React.FC<OfferCardProps> = ({
         <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-semibold">
           {((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF
         </div>
-        <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1">
-          <img
-            src={
-              restaurantLogo ||
-              "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
-                restaurantName
-            }
-            alt={restaurantName}
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        </div>
+        {showOfferAvatar && (
+          <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1">
+            <img
+              src={
+                restaurantLogo ||
+                "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
+                  restaurantName
+              }
+              alt={restaurantName}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          </div>
+        )}
       </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-base line-clamp-1">{offer.title}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-1">
-          {offer.description}
-        </p>
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-sm text-muted-foreground">
-            {restaurantName}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm line-through text-muted-foreground">
-              ₹{offer.originalPrice}
+      {showOfferDetail && (
+        <div className="p-3">
+          <h3 className="font-semibold text-base line-clamp-1">{offer.title}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-1">
+            {offer.description}
+          </p>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-sm text-muted-foreground">
+              {restaurantName}
             </span>
-            <span className="font-semibold text-sm">
-              ₹{offer.discountedPrice}
+            <div className="flex items-center gap-2">
+              <span className="text-sm line-through text-muted-foreground">
+                ₹{offer.originalPrice}
+              </span>
+              <span className="font-semibold text-sm">
+                ₹{offer.discountedPrice}
+              </span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center mt-1">
+            <span className="text-xs text-muted-foreground">
+              Valid till: {new Date(offer.validTo).toLocaleDateString()}
+            </span>
+            <span className="bg-muted text-xs px-2 py-1 rounded-full">
+              {offer.offerType}
             </span>
           </div>
         </div>
-        <div className="flex justify-between items-center mt-1">
-          <span className="text-xs text-muted-foreground">
-            Valid till: {new Date(offer.validTo).toLocaleDateString()}
-          </span>
-          <span className="bg-muted text-xs px-2 py-1 rounded-full">
-            {offer.offerType}
-          </span>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -98,12 +108,14 @@ interface OffersGridProps {
   offers?: Offer[];
   restaurants?: Restaurant[];
   isLoading?: boolean;
+  showOfferDetail?: boolean;
 }
 
 const OffersGrid = ({
   offers = [],
   restaurants = [],
   isLoading = false,
+  showOfferDetail = true,
 }: OffersGridProps) => {
   // `home.tsx` performs filtering (including multi-select). This component
   // simply renders the offers list it receives to avoid duplicate/conflicting
@@ -161,6 +173,8 @@ const OffersGrid = ({
             offer={offer}
             restaurantName={getRestaurantName(offer.restaurantId)}
             restaurantLogo={getRestaurantLogo(offer.restaurantId)}
+            showOfferDetail={showOfferDetail}
+            showOfferAvatar={SHOW_OFFER_AVATAR}
           />
         ))}
       </div>

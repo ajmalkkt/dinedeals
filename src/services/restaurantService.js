@@ -11,7 +11,7 @@ async function fetchJsonWithFallback(url, importPath) {
   }
 
   try {
-    const module = await import(importPath);
+    const module = await import(/* @vite-ignore */ importPath);
     return module.default || module;
   } catch (err) {
     return [];

@@ -5,8 +5,8 @@ import TopHeader from "./TopHeader";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
-import offersData from "../data/offers.json";
-import restaurantsData from "../data/restaurants.json";
+import { getAllOffers } from "../services/offerService";
+import { getAllRestaurants } from "../services/restaurantService";
 import {
   cuisineOptions,
   locationOptions,
@@ -14,6 +14,7 @@ import {
   countryMap,
   DEFAULT_COUNTRY,
   DEFAULT_CATEGORY,
+  SHOW_OFFER_DETAIL,
 } from "../config/appConfig";
 
 // Types for our data
@@ -65,22 +66,19 @@ export default function Home() {
 
   // Fetch data (simulated)
   useEffect(() => {
-    // Simulate API call delay
     const fetchData = async () => {
       setLoading(true);
       try {
-        // In a real app, these would be API calls
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setOffers(offersData as Offer[]);
-        setRestaurants(restaurantsData as Restaurant[]);
-        setFilteredOffers(offersData as Offer[]);
+        const offersResult = await getAllOffers();
+        const restaurantsResult = await getAllRestaurants();
+  setOffers(offersResult);
+  setRestaurants(restaurantsResult);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -173,6 +171,7 @@ export default function Home() {
             offers={filteredOffers}
             restaurants={restaurants}
             isLoading={loading}
+            showOfferDetail={SHOW_OFFER_DETAIL}
           />
         </section>
       </main>

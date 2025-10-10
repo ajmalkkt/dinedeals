@@ -6,7 +6,13 @@ import { OFFERS_URL } from '../config/apiConfig';
 async function fetchJsonWithFallback(url, importPath) {
   try {
     const res = await fetch(url);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      if (typeof window !== 'undefined') {
+        window.__offerDataSource = 'API';
+        console.log('[OfferService] Data fetched from API:', url);
+      }
+      return await res.json();
+    }
   } catch (err) {
     // fall through to dynamic import
   }
@@ -14,9 +20,17 @@ async function fetchJsonWithFallback(url, importPath) {
   // dynamic import fallback (works when bundler includes the JSON)
   try {
     const module = await import(importPath);
+    if (typeof window !== 'undefined') {
+      window.__offerDataSource = 'LOCAL_JSON';
+      console.log('[OfferService] Data fetched from local JSON:', importPath);
+    }
     return module.default || module;
   } catch (err) {
     // return empty array on failure to avoid throwing in UI
+    if (typeof window !== 'undefined') {
+      window.__offerDataSource = 'NONE';
+      console.log('[OfferService] No offer data found.');
+    }
     return [];
   }
 }

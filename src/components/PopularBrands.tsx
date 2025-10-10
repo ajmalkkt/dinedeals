@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import restaurantsData from "../data/restaurants.json";
+import { getAllRestaurants } from "../services/restaurantService";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Props {
@@ -11,6 +11,13 @@ export default function PopularBrands({ brands = [] }: Props) {
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
   const [spotlightIdx, setSpotlightIdx] = useState(0);
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  useEffect(() => {
+    // Fetch restaurants for default brands if brands prop is not provided and not already loaded
+    if ((!brands || brands.length === 0) && restaurants.length === 0) {
+      getAllRestaurants().then((data) => setRestaurants(data.slice(0, 8)));
+    }
+  }, [brands, restaurants.length]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,7 +94,7 @@ export default function PopularBrands({ brands = [] }: Props) {
             {(
               brands.length > 0
                 ? brands
-                : restaurantsData.slice(0, 8).map((r) => r.brandUrl || r.logoUrl)
+                : restaurants.map((r) => r.brandUrl || r.logoUrl)
             ).map((src, i) => (
               <div key={i} className="flex-shrink-0 w-16 h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors">
                 <img src={src} alt={`brand-${i}`} className="w-10 h-10 object-contain rounded" />
