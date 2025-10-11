@@ -2,41 +2,43 @@
 // whether data comes from local JSON or a backend endpoint later.
 
 import { OFFERS_URL } from '../config/apiConfig';
+import { LOG_API_RESPONSE } from '../config/appConfig';
 
-async function fetchJsonWithFallback(url, importPath) {
+async function fetchJsonWithFallback(url, fallbackUrl) {
   try {
     const res = await fetch(url);
     if (res.ok) {
-      if (typeof window !== 'undefined') {
+      if (LOG_API_RESPONSE && typeof window !== 'undefined') {
         window.__offerDataSource = 'API';
         console.log('[OfferService] Data fetched from API:', url);
       }
       return await res.json();
     }
   } catch (err) {
-    // fall through to dynamic import
+    // fall through to fallback fetch
   }
-
-  // dynamic import fallback (works when bundler includes the JSON)
   try {
-    const module = await import(importPath);
-    if (typeof window !== 'undefined') {
-      window.__offerDataSource = 'LOCAL_JSON';
-      console.log('[OfferService] Data fetched from local JSON:', importPath);
+    const res = await fetch(fallbackUrl);
+    if (res.ok) {
+      if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+        window.__offerDataSource = 'LOCAL_JSON';
+        console.log('[OfferService] Data fetched from local JSON:', fallbackUrl);
+      }
+      return await res.json();
     }
-    return module.default || module;
   } catch (err) {
-    // return empty array on failure to avoid throwing in UI
-    if (typeof window !== 'undefined') {
-      window.__offerDataSource = 'NONE';
-      console.log('[OfferService] No offer data found.');
-    }
-    return [];
+    // return empty array on failure
   }
+  if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+    window.__offerDataSource = 'NONE';
+    console.log('[OfferService] No offer data found.');
+  }
+  return [];
 }
 
 async function loadOffers() {
-  return await fetchJsonWithFallback(OFFERS_URL, '../data/offers.json');
+  // Use public/data/offers.json as fallback for production
+  return await fetchJsonWithFallback(OFFERS_URL, '/data/offers.json');
 }
 
 export async function getAllOffers() {

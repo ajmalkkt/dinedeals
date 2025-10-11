@@ -7,6 +7,10 @@ export const SHOW_OFFER_DETAIL = true;
 // Feature flag to show/hide avatar (restaurant logo) on offer image
 export const SHOW_OFFER_AVATAR = false;
 
+
+// Feature flag to enable/disable API response logging
+export const LOG_API_RESPONSE = false;
+
 // Application-level constants and options derived from the mock data so
 // components can import a single source of truth that stays in sync with
 // `src/data/offers.json` and `src/data/restaurants.json`.
