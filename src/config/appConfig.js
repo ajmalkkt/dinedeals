@@ -1,3 +1,8 @@
+// Add SHOW_CUISINE_NAV flag for navigation layout toggle
+export const SHOW_CUISINE_NAV = true; // Set to true to show classic nav, false for cuisine image layout
+// Enquiry configuration
+export const ENQUIRY_EMAIL = "info@dinedeals.com"; // Change to your backend-configured email
+export const ENQUIRY_PHONE = "+974 1234 5678"; // Change to your business phone
 // Feature flag to enable/disable Offer Type filter
 export const SHOW_OFFER_TYPE_FILTER = false;
 

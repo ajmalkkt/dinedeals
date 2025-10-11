@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FilterBar from "./FilterBar";
 import OffersGrid from "./OffersGrid";
 import TopHeader from "./TopHeader";
+import EnquiryPopup from "./EnquiryPopup";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
@@ -28,7 +29,6 @@ interface Restaurant {
   logoUrl: string;
   country: string;
 }
-
 interface Offer {
   id: number;
   title: string;
@@ -48,7 +48,9 @@ interface Offer {
 
 // Available filter options are imported from ../config/appConfig
 
-export default function Home() {
+
+function Home() {
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -62,17 +64,14 @@ export default function Home() {
     offerTypes: [] as string[],
   });
 
-  // (PopularBrands scrolling logic moved into its own component)
-
-  // Fetch data (simulated)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const offersResult = await getAllOffers();
         const restaurantsResult = await getAllRestaurants();
-  setOffers(offersResult);
-  setRestaurants(restaurantsResult);
+        setOffers(offersResult);
+        setRestaurants(restaurantsResult);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -82,38 +81,25 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Apply filters and search
   useEffect(() => {
     let result = [...offers];
-
-    // Apply country filter using centralized countryMap
     if (selectedCountry && countryMap[selectedCountry]) {
       result = result.filter((offer) => offer.country === countryMap[selectedCountry]);
     }
-
-    // Apply category filter
     if (selectedCategory !== "All Offers") {
       result = result.filter((offer) => offer.category === selectedCategory);
     }
-
-    // Apply cuisine filter (support multiple selections)
     if (filters.cuisines && filters.cuisines.length > 0) {
       result = result.filter((offer) => filters.cuisines.includes(offer.cuisine));
     }
-
-    // Apply location filter (match any selected location substring)
     if (filters.locations && filters.locations.length > 0) {
       result = result.filter((offer) =>
         filters.locations.some((loc) => offer.location.includes(loc)),
       );
     }
-
-    // Apply offer type filter (support multiple selections)
     if (filters.offerTypes && filters.offerTypes.length > 0) {
       result = result.filter((offer) => filters.offerTypes.includes(offer.offerType));
     }
-
-    // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter((offer) => {
@@ -125,7 +111,6 @@ export default function Home() {
         );
       });
     }
-
     setFilteredOffers(result);
   }, [
     offers,
@@ -136,12 +121,10 @@ export default function Home() {
     selectedCategory,
   ]);
 
-  // Handle search input
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
-  // Handle filter changes from FilterBar which supplies arrays
   const handleFilterChange = (payload: { cuisines: string[]; locations: string[]; offerTypes: string[] }) => {
     setFilters({
       cuisines: payload.cuisines || [],
@@ -152,21 +135,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopHeader onSearch={handleSearch} selectedCountry={selectedCountry} onSelectCountry={setSelectedCountry} />
-      <SecondaryNav selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-  {/* Main content */}
-  <main className="container mx-auto px-4 py-3">
-    <FeaturedCard />
-    <PopularBrands />
-
-  {/* Filters */}
-  <section className="mb-2">
+      <TopHeader
+        onSearch={handleSearch}
+        selectedCountry={selectedCountry}
+        onSelectCountry={setSelectedCountry}
+        onAddBusiness={() => setEnquiryOpen(true)}
+      />
+      <SecondaryNav
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        onAddBusiness={() => setEnquiryOpen(true)}
+      />
+      <main className="container mx-auto px-4 py-3">
+        <FeaturedCard />
+        <PopularBrands />
+        <section className="mb-2">
           <FilterBar onFilterChange={handleFilterChange} />
         </section>
-
-        {/* Offers grid */}
         <section>
-          <h2 className="text-2xl font-semibold mb-1.5">Hey, what's on your mind?</h2>
+          <h2 className="text-2xl font-semibold mb-1.5">Hey, Enjoy your offers here...</h2>
           <OffersGrid
             offers={filteredOffers}
             restaurants={restaurants}
@@ -175,13 +162,14 @@ export default function Home() {
           />
         </section>
       </main>
-
-      {/* Footer */}
       <footer className="bg-muted py-6 px-4 mt-12">
         <div className="container mx-auto text-center text-muted-foreground">
           <p>© 2025 Restaurant Offers Platform. All rights reserved.</p>
         </div>
       </footer>
+      <EnquiryPopup open={enquiryOpen} onClose={() => setEnquiryOpen(false)} />
     </div>
   );
 }
+
+export default Home;

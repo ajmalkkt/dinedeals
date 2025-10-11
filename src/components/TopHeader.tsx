@@ -6,9 +6,10 @@ interface Props {
   onSearch: (q: string) => void;
   selectedCountry: string;
   onSelectCountry: (c: string) => void;
+  onAddBusiness: () => void;
 }
 
-export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }: Props) {
+export default function TopHeader({ onSearch, selectedCountry, onSelectCountry, onAddBusiness }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <header className="bg-white shadow-md w-full">
@@ -42,7 +43,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
                 {menuOpen && (
                   <div className="absolute right-0 top-10 w-40 bg-white rounded shadow-lg z-10">
                     <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">LOGIN</button>
-                    <a href="#" className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</a>
+                    <button onClick={() => { setMenuOpen(false); onAddBusiness(); }} className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</button>
                     <a href="/admin" className="block w-full text-left px-4 py-2 text-green-700 hover:bg-gray-100">Admin Panel</a>
                   </div>
                 )}
@@ -89,7 +90,7 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry }
                 {menuOpen && (
                   <div className="absolute right-0 top-10 w-40 bg-white rounded shadow-lg z-10">
                     <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">LOGIN</button>
-                    <a href="#" className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</a>
+                    <button onClick={() => { setMenuOpen(false); onAddBusiness(); }} className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100">Add Your Business</button>
                     <a href="/admin" className="block w-full text-left px-4 py-2 text-green-700 hover:bg-gray-100">Admin Panel</a>
                   </div>
                 )}
