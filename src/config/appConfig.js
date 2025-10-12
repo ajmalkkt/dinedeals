@@ -1,3 +1,5 @@
+// Flag to control offer card display: true = show discountedPrice, false = show percentage
+export const SHOW_DISCOUNTED_PRICE = true;
 // Add SHOW_CUISINE_NAV flag for navigation layout toggle
 export const SHOW_CUISINE_NAV = true; // Set to true to show classic nav, false for cuisine image layout
 // Enquiry configuration

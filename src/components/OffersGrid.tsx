@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ZoomInIcon, ZoomOutIcon } from "@radix-ui/react-icons";
 import { Skeleton } from "./ui/skeleton";
-import { SHOW_OFFER_AVATAR } from "../config/appConfig";
+import { Calendar, MapPin } from "lucide-react";
+import { SHOW_OFFER_AVATAR, SHOW_DISCOUNTED_PRICE } from "../config/appConfig";
 
 interface Offer {
   id: number;
@@ -32,6 +33,7 @@ interface Restaurant {
 interface OfferCardProps {
   offer: Offer;
   restaurantName: string;
+  restaurantAddress?: string;
   restaurantLogo: string;
   showOfferDetail?: boolean;
   showOfferAvatar?: boolean;
@@ -40,6 +42,7 @@ interface OfferCardProps {
 const OfferCard: React.FC<OfferCardProps> = ({
   offer,
   restaurantName,
+  restaurantAddress,
   restaurantLogo,
   showOfferDetail = true,
   showOfferAvatar = true,
@@ -66,7 +69,9 @@ const OfferCard: React.FC<OfferCardProps> = ({
             onClick={() => setShowModal(true)}
           />
           <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-semibold">
-            {((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF
+            {SHOW_DISCOUNTED_PRICE
+              ? <span className="text-lg font-bold text-white">₹{offer.discountedPrice}</span>
+              : <span className="text-lg font-bold text-white">{((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF</span>}
           </div>
           {showOfferAvatar && (
             <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1">
@@ -85,9 +90,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
         {showOfferDetail && (
           <div className="p-3">
             <h3 className="font-semibold text-base line-clamp-1">{offer.title}</h3>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-1">
-              {offer.description}
-            </p>
+            {/* Description removed as per requirements */}
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-muted-foreground">
                 {restaurantName}
@@ -100,6 +103,14 @@ const OfferCard: React.FC<OfferCardProps> = ({
                   ₹{offer.discountedPrice}
                 </span>
               </div>
+            </div>
+            <div className="mb-1">
+              {restaurantAddress && (
+                  <>
+                    <MapPin className="inline h-4 w-4 text-muted-foreground" />
+                    <span>{restaurantAddress}</span>
+                  </>
+                )}
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-xs text-muted-foreground">
@@ -180,6 +191,11 @@ const OffersGrid = ({
     return restaurant ? restaurant.name : "Unknown Restaurant";
   };
 
+  const getRestaurantAddress = (id: number): string => {
+    const restaurant = restaurants.find((r) => r.id === id);
+    return restaurant ? restaurant.address : "Unknown Restaurant";
+  };
+
   const getRestaurantLogo = (id: number): string => {
     const restaurant = restaurants.find((r) => r.id === id);
     return restaurant ? restaurant.logoUrl : "https://api.dicebear.com/7.x/avataaars/svg?seed=restaurant";
@@ -220,16 +236,20 @@ const OffersGrid = ({
   return (
     <div className="bg-background w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-2">
-        {filteredOffers.map((offer) => (
-          <OfferCard
-            key={offer.id}
-            offer={offer}
-            restaurantName={getRestaurantName(offer.restaurantId)}
-            restaurantLogo={getRestaurantLogo(offer.restaurantId)}
-            showOfferDetail={showOfferDetail}
-            showOfferAvatar={SHOW_OFFER_AVATAR}
-          />
-        ))}
+        {filteredOffers.map((offer) => {
+          const restaurant = restaurants.find((r) => r.id === offer.restaurantId);
+          return (
+            <OfferCard
+              key={offer.id}
+              offer={offer}
+              restaurantName={restaurant ? restaurant.name : getRestaurantName(offer.restaurantId)}
+              restaurantAddress={restaurant ? restaurant.address : getRestaurantAddress(offer.restaurantId)}
+              restaurantLogo={getRestaurantLogo(offer.restaurantId)}
+              showOfferDetail={showOfferDetail}
+              showOfferAvatar={SHOW_OFFER_AVATAR}
+            />
+          );
+        })}
       </div>
     </div>
   );

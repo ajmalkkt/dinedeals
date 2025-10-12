@@ -15,6 +15,7 @@ import {
   countryMap,
   DEFAULT_COUNTRY,
   DEFAULT_CATEGORY,
+  SHOW_CUISINE_NAV,
   SHOW_OFFER_DETAIL,
 } from "../config/appConfig";
 
@@ -149,9 +150,12 @@ function Home() {
       <main className="container mx-auto px-4 py-3">
         <FeaturedCard />
         <PopularBrands />
-        <section className="mb-2">
-          <FilterBar onFilterChange={handleFilterChange} />
-        </section>
+        {SHOW_CUISINE_NAV && (
+          <section className="mb-2">
+            <FilterBar onFilterChange={handleFilterChange} />
+          </section>
+        )}
+
         <section>
           <h2 className="text-2xl font-semibold mb-1.5">Hey, Enjoy your offers here...</h2>
           <OffersGrid
