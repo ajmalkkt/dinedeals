@@ -70,7 +70,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
           />
           <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-semibold">
             {SHOW_DISCOUNTED_PRICE
-              ? <span className="text-lg font-bold text-white">₹{offer.discountedPrice}</span>
+              ? <span className="text-lg font-bold text-white">QR-{offer.discountedPrice}</span>
               : <span className="text-lg font-bold text-white">{((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF</span>}
           </div>
           {showOfferAvatar && (
@@ -97,10 +97,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm line-through text-muted-foreground">
-                  ₹{offer.originalPrice}
+                  QR-{offer.originalPrice}
                 </span>
                 <span className="font-semibold text-sm">
-                  ₹{offer.discountedPrice}
+                  QR-{offer.discountedPrice}
                 </span>
               </div>
             </div>
