@@ -56,9 +56,47 @@ export async function getOffersByRestaurantId(restaurantId) {
   const rid = typeof restaurantId === 'string' ? Number(restaurantId) : restaurantId;
   return offers.filter((o) => o.restaurantId === rid);
 }
+// === ADMIN METHODS ===
+
+// Upload or update an offer with image
+export async function uploadOffer(formData) {
+  try {
+    const res = await fetch(`${OFFERS_URL}`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload offer');
+    return await res.json();
+  } catch (err) {
+    console.error('[OfferService] uploadOffer error:', err);
+    throw err;
+  }
+}
+
+// Delete offer by ID
+export async function deleteOffer(id) {
+  try {
+    const res = await fetch(`${OFFERS_URL}/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete offer');
+    return await res.json();
+  } catch (err) {
+    console.error('[OfferService] deleteOffer error:', err);
+    throw err;
+  }
+}
+
+// Get offer image URL
+export function getOfferImageUrl(id) {
+  return `${OFFERS_URL}/${id}/image`;
+}
 
 export default {
   getAllOffers,
   getOfferById,
   getOffersByRestaurantId,
+  uploadOffer,
+  deleteOffer,
+  getOfferImageUrl,
 };

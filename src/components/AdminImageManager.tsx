@@ -1,148 +1,465 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  getAllRestaurants,
+  uploadRestaurant,
+  getRestaurantImageUrl,
+} from "../services/restaurantService";
 
-// Utility to read/write JSON files (simulate API for demo)
-const readJson = async (file) => {
-  const res = await fetch(file + `?t=${Date.now()}`);
-  return res.json();
-};
-const writeJson = async (file, data) => {
-  // In real app, this would be an API call. Here, just log for demo.
-  console.log("Write to", file, data);
-};
+import {
+  getOffersByRestaurantId,
+  uploadOffer,
+  deleteOffer,
+  getOfferImageUrl,
+} from "../services/offerService";
 
-export default function AdminImageManager() {
-  // State for restaurant form
+export default function AdminPanel() {
   const [restaurants, setRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [offers, setOffers] = useState([]);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [brandPreview, setBrandPreview] = useState(null);
+  const offerInputRef = useRef(null);
+
+  // Restaurant form
   const [form, setForm] = useState({
     id: "",
     name: "",
     address: "",
+    phone: "",
+    rating: "",
+    cuisine: "",
     logo: null,
+    brand: null,
     country: "Qatar",
   });
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState("");
-  const [offerImages, setOfferImages] = useState([]);
-  const offerInputRef = useRef<HTMLInputElement>(null);
 
-  // Load data on mount
-  React.useEffect(() => {
-    readJson("/src/data/restaurants.json").then(setRestaurants);
-    readJson("/src/data/offers.json").then(setOffers);
+  // Offer form
+  const [offerForm, setOfferForm] = useState({
+    title: "",
+    description: "",
+    cuisine: "",
+    originalPrice: "",
+    discountedPrice: "",
+    offerType: "",
+    validFrom: "",
+    validTo: "",
+    location: "",
+    country: "Qatar",
+    category: "",
+  });
+
+  useEffect(() => {
+    getAllRestaurants().then(setRestaurants).catch(console.error);
   }, []);
 
   // Handle restaurant form change
   const handleFormChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "logo") {
-      setForm((f) => ({ ...f, logo: files[0] }));
-      setLogoPreview(URL.createObjectURL(files[0]));
+    if (files && files.length > 0) {
+      setForm((prev) => ({ ...prev, [name]: files[0] }));
+      if (name === "logo") setLogoPreview(URL.createObjectURL(files[0]));
+      if (name === "brand") setBrandPreview(URL.createObjectURL(files[0]));
     } else {
-      setForm((f) => ({ ...f, [name]: value }));
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Handle restaurant submit
+  // Save restaurant
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!form.id || !form.name || !form.address || !form.logo) {
-      alert("ID, Name, Address, and Logo are required.");
+    if (!form.name || !form.address || !form.logo) {
+      alert("Please fill in all required fields (Name, Address, Logo).");
       return;
     }
-    // Save logo image
-    const logoPath = `/images/restaurants/${form.id}.jpg`;
-    // In real app, upload file here
-    // Update or add restaurant
-    let updated = false;
-    const newData = restaurants.map((r) => {
-      if (r.id === Number(form.id)) {
-        updated = true;
-        return { ...r, name: form.name, address: form.address, logoUrl: logoPath, country: form.country };
-      }
-      return r;
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, val]) => {
+      if (val) formData.append(key, val);
     });
-    if (!updated) {
-      newData.push({ id: Number(form.id), name: form.name, address: form.address, logoUrl: logoPath, country: form.country });
+
+    try {
+      await uploadRestaurant(formData);
+      alert("Restaurant saved successfully!");
+      setRestaurants(await getAllRestaurants());
+      setForm({
+        id: "",
+        name: "",
+        address: "",
+        phone: "",
+        rating: "",
+        cuisine: "",
+        logo: null,
+        brand: null,
+        country: "Qatar",
+      });
+      setLogoPreview(null);
+      setBrandPreview(null);
+    } catch (err) {
+      console.error(err);
+      alert("Error saving restaurant");
     }
-    setRestaurants(newData);
-    await writeJson("/src/data/restaurants.json", newData);
-    alert(updated ? "Restaurant updated" : "Restaurant added");
   };
 
-  // Handle restaurant select for offers
-  const handleSelectRestaurant = (e) => {
-    setSelectedRestaurant(e.target.value);
-    // Load offer images for this restaurant
-    const restOffers = offers.filter((o) => o.restaurantId === Number(e.target.value));
-    setOfferImages(restOffers.map((o) => o.imageUrl));
+  // Select restaurant
+  const handleSelectRestaurant = async (e) => {
+    const id = e.target.value;
+    setSelectedRestaurant(id);
+    if (id) {
+      const data = await getOffersByRestaurantId(id);
+      setOffers(data);
+    } else {
+      setOffers([]);
+    }
   };
 
-  // Handle offer image upload
+  // Offer form change
+  const handleOfferFormChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files && files.length > 0) {
+      setOfferForm((prev) => ({ ...prev, image: files[0] }));
+    } else {
+      setOfferForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // Upload offer
   const handleOfferUpload = async (e) => {
-    const files = e.target.files;
-    if (!selectedRestaurant || !files.length) return;
-    const restId = selectedRestaurant;
-    const newImages = [];
-    for (let file of files) {
-      const imgPath = `/images/offers/${restId}/${file.name}`;
-      // In real app, upload file here
-      newImages.push(imgPath);
-      // Add to offers.json
-      offers.push({ id: Date.now(), restaurantId: Number(restId), imageUrl: imgPath });
+    e.preventDefault();
+    if (!selectedRestaurant) {
+      alert("Select a restaurant first.");
+      return;
     }
-    setOfferImages((imgs) => [...imgs, ...newImages]);
-  await writeJson("/src/data/offers.json", offers);
-  alert("Offer images uploaded");
-  if (offerInputRef.current) offerInputRef.current.value = "";
+    const formData = new FormData();
+    formData.append("restaurantId", selectedRestaurant);
+    Object.entries(offerForm).forEach(([key, val]) => {
+      if (val) formData.append(key, val);
+    });
+
+    try {
+      await uploadOffer(formData);
+      alert("Offer uploaded successfully!");
+      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+      setOfferForm({
+        title: "",
+        description: "",
+        cuisine: "",
+        originalPrice: "",
+        discountedPrice: "",
+        offerType: "",
+        validFrom: "",
+        validTo: "",
+        location: "",
+        country: "Qatar",
+        category: "",
+      });
+      if (offerInputRef.current) offerInputRef.current.value = "";
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading offer");
+    }
   };
 
-  // Handle offer image delete
-  const handleDeleteOffer = async (img) => {
-    const filtered = offers.filter((o) => o.imageUrl !== img);
-    setOfferImages((imgs) => imgs.filter((i) => i !== img));
-    await writeJson("/src/data/offers.json", filtered);
-    alert("Offer image deleted");
+  // Delete offer
+  const handleDeleteOffer = async (id) => {
+    try {
+      await deleteOffer(id);
+      alert("Offer deleted.");
+      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting offer");
+    }
   };
 
   return (
-  <div className="max-w-2xl mx-auto p-2 space-y-6 md:p-4 md:space-y-8">
-      {/* Restaurant Setup */}
-  <section className="border rounded p-2 md:p-4">
-        <h2 className="font-bold mb-2">Restaurant Setup</h2>
-        <form onSubmit={handleRestaurantSubmit} className="space-y-2">
-          <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-            <input name="id" placeholder="Restaurant ID" value={form.id} onChange={handleFormChange} className="border p-1 flex-1" required />
-            <input name="name" placeholder="Name" value={form.name} onChange={handleFormChange} className="border p-1 flex-1" required />
+    <div className="max-w-5xl mx-auto p-4 space-y-8">
+      {/* ===== Restaurant Setup Section ===== */}
+      <section className="border rounded p-4 shadow">
+        <h2 className="text-lg font-bold mb-4">Restaurant Setup</h2>
+        <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Name *</label>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+              required
+            />
           </div>
-          <input name="address" placeholder="Address" value={form.address} onChange={handleFormChange} className="border p-1 w-full" required />
-          <input name="country" placeholder="Country" value={form.country} onChange={handleFormChange} className="border p-1 w-full" />
-          <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="border p-1 w-full" required />
-          {logoPreview && <img src={logoPreview} alt="Logo Preview" className="w-20 h-20 object-cover mt-1 mx-auto md:mx-0" />}
-          <button type="submit" className="bg-blue-600 text-white px-4 py-1 rounded w-full md:w-auto">Save Restaurant</button>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Address *</label>
+            <input
+              name="address"
+              value={form.address}
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Phone</label>
+            <input
+              name="phone"
+              value={form.phone}
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Rating</label>
+            <input
+              name="rating"
+              value={form.rating}
+              onChange={handleFormChange}
+              type="number"
+              step="0.1"
+              className="border p-1 rounded"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Cuisine (comma-separated)</label>
+            <input
+              name="cuisine"
+              value={form.cuisine}
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Country</label>
+            <input
+              name="country"
+              value={form.country}
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Logo Image *</label>
+            <input
+              name="logo"
+              type="file"
+              accept="image/*"
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+              required
+            />
+            {logoPreview && (
+              <img
+                src={logoPreview}
+                alt="Logo Preview"
+                className="w-20 h-20 object-cover mt-2 border rounded"
+              />
+            )}
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm font-semibold">Brand Image</label>
+            <input
+              name="brand"
+              type="file"
+              accept="image/*"
+              onChange={handleFormChange}
+              className="border p-1 rounded"
+            />
+            {brandPreview && (
+              <img
+                src={brandPreview}
+                alt="Brand Preview"
+                className="w-20 h-20 object-cover mt-2 border rounded"
+              />
+            )}
+          </div>
+
+          <div className="col-span-full mt-3">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Save Restaurant
+            </button>
+          </div>
         </form>
       </section>
 
-      {/* Offer Images Section */}
-  <section className="border rounded p-2 md:p-4">
-        <h2 className="font-bold mb-2">Manage Offer Images</h2>
-  <select value={selectedRestaurant} onChange={handleSelectRestaurant} className="border p-1 w-full mb-2 text-sm">
-          <option value="">Select Restaurant</option>
+      {/* ===== Offer Management Section ===== */}
+      <section className="border rounded p-4 shadow">
+        <h2 className="text-lg font-bold mb-4">Manage Offers</h2>
+
+        <label className="block text-sm font-semibold mb-1">Select Restaurant</label>
+        <select
+          value={selectedRestaurant}
+          onChange={handleSelectRestaurant}
+          className="border p-1 rounded w-full mb-4"
+        >
+          <option value="">Select</option>
           {restaurants.map((r) => (
-            <option key={r.id} value={r.id}>{r.id} - {r.name}</option>
+            <option key={r.id} value={r.id}>
+              {r.id} - {r.name}
+            </option>
           ))}
         </select>
+
         {selectedRestaurant && (
           <>
-            <div className="flex flex-wrap gap-2 mb-2 justify-center md:justify-start">
-              {offerImages.map((img) => (
-                <div key={img} className="relative">
-                  <img src={img} alt="Offer" className="w-20 h-20 md:w-24 md:h-24 object-cover rounded" />
-                  <button onClick={() => handleDeleteOffer(img)} className="absolute top-1 right-1 bg-red-600 text-white rounded px-1 text-xs">Delete</button>
+            <form
+              onSubmit={handleOfferUpload}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"
+            >
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Title</label>
+                <input
+                  name="title"
+                  value={offerForm.title}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Cuisine</label>
+                <input
+                  name="cuisine"
+                  value={offerForm.cuisine}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Original Price</label>
+                <input
+                  name="originalPrice"
+                  value={offerForm.originalPrice}
+                  onChange={handleOfferFormChange}
+                  type="number"
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Discounted Price</label>
+                <input
+                  name="discountedPrice"
+                  value={offerForm.discountedPrice}
+                  onChange={handleOfferFormChange}
+                  type="number"
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Offer Type</label>
+                <input
+                  name="offerType"
+                  value={offerForm.offerType}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Valid From</label>
+                <input
+                  name="validFrom"
+                  type="date"
+                  value={offerForm.validFrom}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Valid To</label>
+                <input
+                  name="validTo"
+                  type="date"
+                  value={offerForm.validTo}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Location</label>
+                <input
+                  name="location"
+                  value={offerForm.location}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold">Category</label>
+                <input
+                  name="category"
+                  value={offerForm.category}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="flex flex-col col-span-full">
+                <label className="text-sm font-semibold">Description</label>
+                <textarea
+                  name="description"
+                  value={offerForm.description}
+                  onChange={handleOfferFormChange}
+                  rows={2}
+                  className="border p-1 rounded w-full"
+                />
+              </div>
+
+              <div className="flex flex-col col-span-full">
+                <label className="text-sm font-semibold">Offer Image</label>
+                <input
+                  name="image"
+                  type="file"
+                  accept="image/*"
+                  ref={offerInputRef}
+                  onChange={handleOfferFormChange}
+                  className="border p-1 rounded"
+                />
+              </div>
+
+              <div className="col-span-full">
+                <button
+                  type="submit"
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Upload Offer
+                </button>
+              </div>
+            </form>
+
+            <div className="flex flex-wrap gap-3">
+              {offers.map((o) => (
+                <div
+                  key={o.id}
+                  className="border p-2 rounded relative w-28 md:w-32"
+                >
+                  <img
+                    src={getOfferImageUrl(o.id)}
+                    alt={o.title}
+                    className="w-full h-20 object-cover rounded"
+                  />
+                  <p className="text-xs mt-1 truncate">{o.title}</p>
+                  <button
+                    onClick={() => handleDeleteOffer(o.id)}
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded px-1 text-xs"
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
-            <input type="file" multiple accept="image/*" ref={offerInputRef} onChange={handleOfferUpload} className="border p-1 w-full text-sm" />
           </>
         )}
       </section>

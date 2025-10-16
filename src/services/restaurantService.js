@@ -57,9 +57,32 @@ export async function getRestaurantsByCountry(country) {
   if (!country) return restaurants;
   return restaurants.filter((r) => String(r.country).toLowerCase() === String(country).toLowerCase());
 }
+// === ADMIN METHODS ===
+
+// Upload or update a restaurant with images
+export async function uploadRestaurant(formData) {
+  try {
+    const res = await fetch(`${RESTAURANTS_URL}`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload restaurant');
+    return await res.json();
+  } catch (err) {
+    console.error('[RestaurantService] uploadRestaurant error:', err);
+    throw err;
+  }
+}
+
+// Get logo or brand image URL for restaurant
+export function getRestaurantImageUrl(id, type = 'logo') {
+  return `${RESTAURANTS_URL}/${id}/image/${type}`;
+}
 
 export default {
   getAllRestaurants,
   getRestaurantById,
   getRestaurantsByCountry,
+  uploadRestaurant,
+  getRestaurantImageUrl,
 };
