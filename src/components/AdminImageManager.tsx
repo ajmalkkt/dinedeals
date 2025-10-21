@@ -66,8 +66,8 @@ export default function AdminPanel() {
 
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.address || !form.logo) {
-      alert("Please fill in all required fields (Name, Address, Logo).");
+    if (!form.name || !form.address || !form.logo || !form.country) {
+      alert("Please fill in all required fields (Name, Address, Country, Logo).");
       return;
     }
     const formData = new FormData();
@@ -92,6 +92,8 @@ export default function AdminPanel() {
       });
       setLogoPreview(null);
       setBrandPreview(null);
+      if (offerInputRef.current) offerInputRef.current.value = "";
+      document.querySelectorAll('input[type="file"]').forEach(input => (input.value = ""));
     } catch (err) {
       console.error(err);
       alert("Error saving restaurant");

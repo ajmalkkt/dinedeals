@@ -67,6 +67,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
             alt={offer.title}
             className="h-40 w-full object-cover cursor-pointer"
             onClick={() => setShowModal(true)}
+            onError={(e) => {
+              e.currentTarget.src =
+                "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800&q=80";
+            }}
           />
           <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-semibold">
             {SHOW_DISCOUNTED_PRICE
@@ -78,11 +82,13 @@ const OfferCard: React.FC<OfferCardProps> = ({
               <img
                 src={
                   restaurantLogo ||
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
-                    restaurantName
+                  `https://api.dicebear.com/7.x/avataaars/svg?seed=${restaurantName}`
                 }
                 alt={restaurantName}
                 className="h-8 w-8 rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${restaurantName}`;
+                }}
               />
             </div>
           )}
@@ -198,8 +204,12 @@ const OffersGrid = ({
 
   const getRestaurantLogo = (id: number): string => {
     const restaurant = restaurants.find((r) => r.id === id);
-    return restaurant ? restaurant.logoUrl : "https://api.dicebear.com/7.x/avataaars/svg?seed=restaurant";
+    return (
+      restaurant?.logoUrl ||
+      "https://api.dicebear.com/7.x/avataaars/svg?seed=restaurant"
+    );
   };
+
 
   if (isLoading) {
     return (

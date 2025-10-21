@@ -78,6 +78,10 @@ export async function uploadRestaurant(formData) {
 export function getRestaurantImageUrl(id, type = 'logo') {
   return `${RESTAURANTS_URL}/${id}/image/${type}`;
 }
+// --- restaurantService.js ---
+//export const getRestaurantImageUrl = (restaurantId, type = "logo") =>
+//  `${import.meta.env.VITE_API_BASE_URL}/api/restaurants/${restaurantId}/image/${type}`;
+
 
 export default {
   getAllRestaurants,

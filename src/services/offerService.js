@@ -91,6 +91,10 @@ export async function deleteOffer(id) {
 export function getOfferImageUrl(id) {
   return `${OFFERS_URL}/${id}/image`;
 }
+// --- offerService.js ---
+//export const getOfferImageUrl = (offerId) =>
+//  `${import.meta.env.VITE_API_BASE_URL}/api/offers/${offerId}/image`;
+
 
 export default {
   getAllOffers,
