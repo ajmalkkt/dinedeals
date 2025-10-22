@@ -41,6 +41,7 @@ async function loadOffers() {
   return await fetchJsonWithFallback(OFFERS_URL, '/data/offers.json');
 }
 
+// Public methods to get offers
 export async function getAllOffers() {
   return await loadOffers();
 }
@@ -59,11 +60,12 @@ export async function getOffersByRestaurantId(restaurantId) {
 // === ADMIN METHODS ===
 
 // Upload or update an offer with image
-export async function uploadOffer(formData) {
+export async function uploadOffer(formData, options = {}) {
   try {
     const res = await fetch(`${OFFERS_URL}`, {
       method: 'POST',
       body: formData,
+      headers: options.headers || {},
     });
     if (!res.ok) throw new Error('Failed to upload offer');
     return await res.json();
@@ -74,10 +76,11 @@ export async function uploadOffer(formData) {
 }
 
 // Delete offer by ID
-export async function deleteOffer(id) {
+export async function deleteOffer(id, options = {}) {
   try {
     const res = await fetch(`${OFFERS_URL}/${id}`, {
       method: 'DELETE',
+      headers: options.headers || {},
     });
     if (!res.ok) throw new Error('Failed to delete offer');
     return await res.json();

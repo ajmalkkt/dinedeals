@@ -1,29 +1,24 @@
-// Flag to control offer card display: true = show discountedPrice, false = show percentage
-export const SHOW_DISCOUNTED_PRICE = true;
-// Add SHOW_CUISINE_NAV flag for navigation layout toggle
-export const SHOW_CUISINE_NAV = true; // Set to true to show classic nav, false for cuisine image layout
-// Enquiry configuration
-export const ENQUIRY_EMAIL = "info@dinedeals.com"; // Change to your backend-configured email
-export const ENQUIRY_PHONE = "+974 1234 5678"; // Change to your business phone
-// Feature flag to enable/disable Offer Type filter
-export const SHOW_OFFER_TYPE_FILTER = false;
 
-// Feature flag to show/hide offer details in OffersGrid
-export const SHOW_OFFER_DETAIL = true;
+  const SHOW_DISCOUNTED_PRICE = import.meta.env.VITE_SHOW_DISCOUNTED_PRICE === "true";
+  const SHOW_CUISINE_NAV = import.meta.env.VITE_SHOW_CUISINE_NAV === "true";
 
-// Feature flag to show/hide avatar (restaurant logo) on offer image
-export const SHOW_OFFER_AVATAR = false;
+  const ENQUIRY_EMAIL = import.meta.env.VITE_ENQUIRY_EMAIL || "info@dinedeals.com";
+  const ENQUIRY_PHONE = import.meta.env.VITE_ENQUIRY_PHONE || "+974 1234 5678";
 
+  const SHOW_OFFER_TYPE_FILTER = import.meta.env.VITE_SHOW_OFFER_TYPE_FILTER === "true";
+  const SHOW_OFFER_DETAIL = import.meta.env.VITE_SHOW_OFFER_DETAIL === "true";
+  const SHOW_OFFER_AVATAR = import.meta.env.VITE_SHOW_OFFER_AVATAR === "true";
+  const LOG_API_RESPONSE = import.meta.env.VITE_LOG_API_RESPONSE === "true";
 
-// Feature flag to enable/disable API response logging
-export const LOG_API_RESPONSE = false;
+  const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || "Qatar";
+  const DEFAULT_CATEGORY = import.meta.env.VITE_DEFAULT_CATEGORY || "All Offers";
 
-// Application-level constants and options derived from the mock data so
-// components can import a single source of truth that stays in sync with
-// `src/data/offers.json` and `src/data/restaurants.json`.
+  const SHOW_OFFERS = import.meta.env.VITE_SHOW_OFFERS === "true";
+  const SHOW_PRODUCTS = import.meta.env.VITE_SHOW_PRODUCTS === "true";
+  const SHOW_COUPONS = import.meta.env.VITE_SHOW_COUPONS === "true";
+  const SHOW_ENTERTAINMENT = import.meta.env.VITE_SHOW_ENTERTAINMENT === "true";
+  const SHOW_FINANCIAL_SERVICE = import.meta.env.VITE_SHOW_FINANCIAL_SERVICE === "true";
 
-// Lists populated directly from `src/data/offers.json` and `src/data/restaurants.json`.
-// These are explicit values (no runtime iteration).
 
 export const cuisineOptions = [
   "All",
@@ -67,24 +62,17 @@ export const countryMap = {
   UAE: "UAE",
   Bahrain: "Bahrain",
   Kuwait: "Kuwait",
-  "Saudi Arabia": "Saudi Arabia",
+  'Saudi Arabia': "Saudi Arabia",
 };
 
-export const DEFAULT_COUNTRY = "Qatar";
-export const DEFAULT_CATEGORY = "All Offers";
-
-// Feature flags for showing/hiding buttons/links
-export const SHOW_OFFERS = false;
-export const SHOW_PRODUCTS = false;
-export const SHOW_COUPONS = false;
-export const SHOW_ENTERTAINMENT = false;
-export const SHOW_FINANCIAL_SERVICE = false;
-
-export default {
+export default { 
   cuisineOptions,
   locationOptions,
   offerTypeOptions,
   countryMap,
+};
+
+export {
   DEFAULT_COUNTRY,
   DEFAULT_CATEGORY,
   SHOW_PRODUCTS,
@@ -93,4 +81,11 @@ export default {
   SHOW_FINANCIAL_SERVICE,
   SHOW_OFFERS,
   SHOW_OFFER_TYPE_FILTER,
+  SHOW_OFFER_DETAIL,  
+  SHOW_OFFER_AVATAR,
+  ENQUIRY_EMAIL,
+  ENQUIRY_PHONE,
+  SHOW_CUISINE_NAV,
+  SHOW_DISCOUNTED_PRICE,
+  LOG_API_RESPONSE,
 };

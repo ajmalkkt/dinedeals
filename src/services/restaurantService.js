@@ -1,6 +1,6 @@
 // Service for restaurants. Mirrors the offers service API style.
 
-import { RESTAURANTS_URL } from '../config/apiConfig';
+import { RESTAURANTS_URL,BULK_API_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
@@ -60,11 +60,12 @@ export async function getRestaurantsByCountry(country) {
 // === ADMIN METHODS ===
 
 // Upload or update a restaurant with images
-export async function uploadRestaurant(formData) {
+export async function uploadRestaurant(formData, options = {}) {
   try {
     const res = await fetch(`${RESTAURANTS_URL}`, {
       method: 'POST',
       body: formData,
+      headers: options.headers || {},
     });
     if (!res.ok) throw new Error('Failed to upload restaurant');
     return await res.json();
@@ -74,6 +75,22 @@ export async function uploadRestaurant(formData) {
   }
 }
 
+export async function uploadBulkData(options = {}) {
+  try {
+    const res = await fetch(`${BULK_API_URL}`, {
+      method: "POST",
+      headers: {
+        ...(options.headers || {}), // pass x-api-token here
+      },
+      // assuming backend accepts no body, or you can add formData/json if needed
+    });
+    if (!res.ok) throw new Error("Failed to perform bulk upload");
+    return await res.json();
+  } catch (err) {
+    console.error("[RestaurantService] uploadBulkData error:", err);
+    throw err;
+  }
+}
 // Get logo or brand image URL for restaurant
 export function getRestaurantImageUrl(id, type = 'logo') {
   return `${RESTAURANTS_URL}/${id}/image/${type}`;
