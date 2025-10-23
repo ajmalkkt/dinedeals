@@ -15,7 +15,7 @@ export default function PopularBrands({ brands = [] }: Props) {
   useEffect(() => {
     // Fetch restaurants for default brands if brands prop is not provided and not already loaded
     if ((!brands || brands.length === 0) && restaurants.length === 0) {
-      getAllRestaurants().then((data) => setRestaurants(data.slice(0, 8)));
+      getAllRestaurants().then((data) => setRestaurants(data || []));
     }
   }, [brands, restaurants.length]);
 
@@ -82,22 +82,53 @@ export default function PopularBrands({ brands = [] }: Props) {
         </div>
 
         <div className="relative">
-          <button aria-label="previous" onClick={prev} disabled={!canPrev} className={`absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${!canPrev ? 'opacity-40 pointer-events-none' : ''}`}>
+          {/* Left Arrow */}
+          <button
+            aria-label="previous"
+            onClick={prev}
+            disabled={!canPrev}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 z-30 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${
+              !canPrev ? "opacity-40 pointer-events-none" : ""
+            }`}
+          >
             <ChevronLeft className="h-5 w-5 text-gray-700" />
           </button>
 
-          <button aria-label="next" onClick={next} disabled={!canNext} className={`absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${!canNext ? 'opacity-40 pointer-events-none' : ''}`}>
+          {/* Right Arrow */}
+          <button
+            aria-label="next"
+            onClick={next}
+            disabled={!canNext}
+            className={`absolute right-2 top-1/2 -translate-y-1/2 z-30 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${
+              !canNext ? "opacity-40 pointer-events-none" : ""
+            }`}
+          >
             <ChevronRight className="h-5 w-5 text-gray-700" />
           </button>
 
-          <div ref={brandsRef} className="flex items-center gap-1 overflow-x-auto py-1 pl-12 pr-12" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {/* Fade Gradients */}
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 z-20 bg-gradient-to-r from-gray-50 via-gray-50 to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-12 z-20 bg-gradient-to-l from-gray-50 via-gray-50 to-transparent" />
+
+          {/* Scroll Container */}
+          <div
+            ref={brandsRef}
+            className="flex items-center gap-1 overflow-x-hidden scroll-smooth py-1 pl-12 pr-12"
+          >
             {(
               brands.length > 0
                 ? brands
                 : restaurants.map((r) => r.brandUrl || r.logoUrl)
             ).map((src, i) => (
-              <div key={i} className="flex-shrink-0 w-16 h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors">
-                <img src={src} alt={`brand-${i}`} className="w-10 h-10 object-contain rounded" />
+              <div
+                key={i}
+                className="flex-shrink-0 w-16 h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors"
+              >
+                <img
+                  src={src}
+                  alt={`brand-${i}`}
+                  className="w-10 h-10 object-contain rounded"
+                />
               </div>
             ))}
           </div>
