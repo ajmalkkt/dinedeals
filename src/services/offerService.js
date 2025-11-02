@@ -57,6 +57,13 @@ export async function getOffersByRestaurantId(restaurantId) {
   const rid = typeof restaurantId === 'string' ? Number(restaurantId) : restaurantId;
   return offers.filter((o) => o.restaurantId === rid);
 }
+
+export async function searchOffersByCuisine(cuisine) {
+  const res = await fetch(`${OFFERS_URL}/search/${encodeURIComponent(cuisine)}`);
+  if (!res.ok) throw new Error("Failed to search offers");
+  return await res.json();
+}
+
 // === ADMIN METHODS ===
 
 // Upload or update an offer with image

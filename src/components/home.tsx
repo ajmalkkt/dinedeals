@@ -6,7 +6,7 @@ import EnquiryPopup from "./EnquiryPopup";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
-import { getAllOffers } from "../services/offerService";
+import { getAllOffers, searchOffersByCuisine } from "../services/offerService"; // 👈 add search API
 import { getAllRestaurants } from "../services/restaurantService";
 import {
   cuisineOptions,
@@ -19,7 +19,6 @@ import {
   SHOW_OFFER_DETAIL,
 } from "../config/appConfig";
 
-// Types for our data
 interface Restaurant {
   id: number;
   name: string;
@@ -65,6 +64,7 @@ function Home() {
     offerTypes: [] as string[],
   });
 
+  // initial load
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -82,6 +82,7 @@ function Home() {
     fetchData();
   }, []);
 
+  // filter locally
   useEffect(() => {
     let result = [...offers];
     if (selectedCountry && countryMap[selectedCountry]) {
@@ -95,7 +96,7 @@ function Home() {
     }
     if (filters.locations && filters.locations.length > 0) {
       result = result.filter((offer) =>
-        filters.locations.some((loc) => offer.location.includes(loc)),
+        filters.locations.some((loc) => offer.location.includes(loc))
       );
     }
     if (filters.offerTypes && filters.offerTypes.length > 0) {
@@ -113,26 +114,44 @@ function Home() {
       });
     }
     setFilteredOffers(result);
-  }, [
-    offers,
-    filters,
-    searchQuery,
-    restaurants,
-    selectedCountry,
-    selectedCategory,
-  ]);
+  }, [offers, filters, searchQuery, restaurants, selectedCountry, selectedCategory]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
-  const handleFilterChange = (payload: { cuisines: string[]; locations: string[]; offerTypes: string[] }) => {
+  const handleFilterChange = (payload: {
+    cuisines: string[];
+    locations: string[];
+    offerTypes: string[];
+  }) => {
     setFilters({
       cuisines: payload.cuisines || [],
       locations: payload.locations || [],
       offerTypes: payload.offerTypes || [],
     });
   };
+
+  // 🍽 handle cuisine click
+ 
+  const handleCuisineSelect = async (cuisine: string | null) => {
+    setLoading(true);
+    try {
+      if (!cuisine) {
+        // 👈 All Offers clicked → reset to all
+        const all = await getAllOffers();
+        setFilteredOffers(all);
+      } else {
+        const result = await searchOffersByCuisine(cuisine);
+        setFilteredOffers(result);
+      }
+    } catch (error) {
+      console.error("Error fetching cuisine offers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,11 +161,14 @@ function Home() {
         onSelectCountry={setSelectedCountry}
         onAddBusiness={() => setEnquiryOpen(true)}
       />
+
       <SecondaryNav
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         onAddBusiness={() => setEnquiryOpen(true)}
+        onCuisineSelect={handleCuisineSelect} // 👈 new prop passed here
       />
+
       <main className="container mx-auto px-4 py-3">
         <FeaturedCard />
         <PopularBrands />
@@ -166,11 +188,13 @@ function Home() {
           />
         </section>
       </main>
+
       <footer className="bg-muted py-6 px-4 mt-12">
         <div className="container mx-auto text-center text-muted-foreground">
           <p>© 2025 Restaurant Offers Platform. All rights reserved.</p>
         </div>
       </footer>
+
       <EnquiryPopup open={enquiryOpen} onClose={() => setEnquiryOpen(false)} />
     </div>
   );
