@@ -86,7 +86,7 @@ export default function AdminPanel() {
 
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter API Key to proceed.");
+    if (!apiKey) return alert("Please enter Your Key to proceed.");
     if (!form.name || !form.address || !form.logo || !form.country) {
       return alert("Please fill in all required fields (Name, Address, Country, Logo).");
     }
@@ -124,7 +124,7 @@ export default function AdminPanel() {
 
   const handleOfferUpload = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter API Key to proceed.");
+    if (!apiKey) return alert("Please enter Your Key to proceed.");
     if (!selectedRestaurant) return alert("Select a restaurant first.");
 
     const formData = new FormData();
@@ -146,7 +146,7 @@ export default function AdminPanel() {
   };
 
   const handleDeleteOffer = async (id) => {
-    if (!apiKey) return alert("Please enter API Key to proceed.");
+    if (!apiKey) return alert("Please enter Your Key to proceed.");
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
       alert("Offer deleted.");
@@ -158,7 +158,7 @@ export default function AdminPanel() {
   };
 
   const handleBulkProcessing = async () => {
-    if (!apiKey) return alert("Please enter API Key for bulk processing.");
+    if (!apiKey) return alert("Please enter Your Key for bulk processing.");
     try {
       await uploadBulkData({ headers: getAuthHeaders() });
       alert("Bulk processing completed!");
@@ -187,7 +187,7 @@ export default function AdminPanel() {
         <label className="flex items-center gap-1">
           <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Processing
         </label>
-        <input type="text" placeholder="API Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="border p-1 rounded ml-4 flex-1" />
+        <input type="text" placeholder="Your Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="border p-1 rounded ml-4 flex-1" />
       </div>
 
       {/* ===== Manual Mode Sections ===== */}
