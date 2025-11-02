@@ -186,8 +186,8 @@ const SecondaryNav: React.FC<Props> = ({
           <div
             className={`w-16 h-16 flex items-center justify-center rounded-full shadow mb-1 text-base font-bold ${
               selectedCuisine === null
-                ? "bg-white-500 text-white ring-4 ring-blue-400"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-orange-500 text-blue ring-4 ring-blue-400"
+                : "bg-orange-100 text-gray-600 hover:bg-orange-100"
             }`}
           >
           <img
