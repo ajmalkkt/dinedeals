@@ -9,7 +9,7 @@ interface Props {
   selectedCategory: string;
   onSelectCategory: (c: string) => void;
   onAddBusiness: () => void;
-  onCuisineSelect?: (cuisine: string | null) => void; // can be null for "All Offers"
+  onCuisineSelect?: (cuisine: string | null, isSeach: boolean | false) => void; // can be null for "All Offers"
 }
 
 const cuisineList = [
@@ -75,7 +75,7 @@ const SecondaryNav: React.FC<Props> = ({
 
   const handleCuisineClick = (cuisine: string | null) => {
     setSelectedCuisine(cuisine);
-    if (onCuisineSelect) onCuisineSelect(cuisine);
+    if (onCuisineSelect) onCuisineSelect(cuisine, false);
   };
 
   const categories = [
