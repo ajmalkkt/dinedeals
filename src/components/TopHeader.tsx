@@ -7,10 +7,21 @@ interface Props {
   selectedCountry: string;
   onSelectCountry: (c: string) => void;
   onAddBusiness: () => void;
+  onSearchClick?: (cuisine: string | null, isSeach: boolean | true) => void; // optional search click handler
+  searchQuery: string;
 }
 
-export default function TopHeader({ onSearch, selectedCountry, onSelectCountry, onAddBusiness }: Props) {
+export default function TopHeader(
+  { onSearch, selectedCountry, onSelectCountry, onAddBusiness, onSearchClick, searchQuery }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  // to set the search key, use useState feature 
+  //this method will be called when input changes for search text box
+  // and pass it to onSearchClick when search button is clicked 
+  // passing true for isSearch to indicate search button click  
+  const [searchKey, setSearchKey] = useState<string | null>(null);
+  const handleSearchClick = () => {
+    onSearchClick(searchKey, true);
+  };
   return (
     <header className="bg-white shadow-md w-full">
       <div className="border-b border-gray-200">
@@ -70,11 +81,17 @@ export default function TopHeader({ onSearch, selectedCountry, onSelectCountry, 
             <div className="flex flex-row items-center gap-2 w-full">
               <input
                 type="text"
+                value={searchQuery}
                 placeholder="Find restaurant offers and deals"
                 className="w-[80%] md:w-[80%] flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm"
-                onChange={(e) => onSearch(e.target.value)}
+                onChange={(e) => {
+                                  onSearch(e.target.value);
+                                  setSearchKey(e.target.value);
+                                }
+                         }
               />
-              <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm">Search</button>
+              <button className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm"
+                onClick={()=>handleSearchClick()}>Search</button>
               <div className="hidden md:flex items-center gap-2">
                 <select
                   value={selectedCountry}

@@ -134,7 +134,8 @@ function Home() {
 
   // 🍽 handle cuisine click
  
-  const handleCuisineSelect = async (cuisine: string | null) => {
+  const handleCuisineSelect = async (cuisine: string | null, 
+    isSearch:boolean | false) => {
     setLoading(true);
     try {
       if (!cuisine) {
@@ -145,11 +146,21 @@ function Home() {
         const result = await searchOffersByCuisine(cuisine);
         setFilteredOffers(result);
       }
+      //Clear the search box once a cuisine is selected
+      handleClearSearch(isSearch);
     } catch (error) {
       console.error("Error fetching cuisine offers:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Inside Home component
+  //This funnction clears the search box when a cuisine is selected
+  // to avoid confusion between search and cuisine selection
+  const handleClearSearch = (isSeach : boolean | false) => {
+    if (isSeach) return; // do not clear if it is a search action
+    setSearchQuery(""); // clears text in TopHeader
   };
 
 
@@ -160,6 +171,8 @@ function Home() {
         selectedCountry={selectedCountry}
         onSelectCountry={setSelectedCountry}
         onAddBusiness={() => setEnquiryOpen(true)}
+        onSearchClick={handleCuisineSelect}
+        searchQuery={searchQuery}
       />
 
       <SecondaryNav
