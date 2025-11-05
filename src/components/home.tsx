@@ -172,7 +172,7 @@ function Home() {
       <main className="container mx-auto px-4 py-3">
         <FeaturedCard />
         <PopularBrands />
-        {SHOW_CUISINE_NAV && (
+        {!SHOW_CUISINE_NAV && (
           <section className="mb-2">
             <FilterBar onFilterChange={handleFilterChange} />
           </section>

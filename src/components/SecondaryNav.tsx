@@ -84,7 +84,8 @@ const SecondaryNav: React.FC<Props> = ({
     ...(SHOW_FINANCIAL_SERVICE ? ["Financial Service"] : []),
   ];
 
-  if (SHOW_CUISINE_NAV) {
+  //For old mode without cuisine nav
+  if (!SHOW_CUISINE_NAV) {
     return (
       <div className="bg-purple-600 text-white w-full">
         <div className="container mx-auto px-2 w-full py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -141,7 +142,7 @@ const SecondaryNav: React.FC<Props> = ({
     );
   }
 
-  // --- cuisine layout ---
+  // --- cuisine list layout for navigation. SHOW_CUISINE_NAV=true ---
   return (
     <div className="bg-white w-full py-4">
       <div className="container mx-auto px-2">
