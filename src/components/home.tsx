@@ -6,7 +6,7 @@ import EnquiryPopup from "./EnquiryPopup";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
-import { getAllOffers, searchOffersByCuisine } from "../services/offerService"; // 👈 add search API
+import { getAllOffers, searchOffersByCuisine, getOffersByRestaurantId } from "../services/offerService"; // 👈 add search API
 import { getAllRestaurants } from "../services/restaurantService";
 import {
   cuisineOptions,
@@ -163,6 +163,21 @@ function Home() {
     setSearchQuery(""); // clears text in TopHeader
   };
 
+  // Handle restaurant selection from PopularBrands
+  const handleSelectRestaurant = async (id : String | null) => {
+    setLoading(true);
+    try {
+      const result = await getOffersByRestaurantId(id);
+      //console.log("Offers for restaurant id ", id, ": ", result);
+      setFilteredOffers(result);
+      //Clear the search box once a restaurant is selected
+      handleClearSearch(false);
+    } catch (error) {
+      console.error("Error fetching cuisine offers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,12 +194,14 @@ function Home() {
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
         onAddBusiness={() => setEnquiryOpen(true)}
-        onCuisineSelect={handleCuisineSelect} // 👈 new prop passed here
+        onCuisineSelect={handleCuisineSelect} 
       />
 
       <main className="container mx-auto px-4 py-3">
         <FeaturedCard />
-        <PopularBrands />
+        <PopularBrands 
+          onSelectRestaurant={handleSelectRestaurant}
+        />
         {!SHOW_CUISINE_NAV && (
           <section className="mb-2">
             <FilterBar onFilterChange={handleFilterChange} />

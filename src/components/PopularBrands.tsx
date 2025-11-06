@@ -4,14 +4,23 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Props {
   brands?: string[];
+  onSelectRestaurant?: (restaurantId: String) => void;
 }
 
-export default function PopularBrands({ brands = [] }: Props) {
+export default function PopularBrands({ brands = [], onSelectRestaurant }: Props) {
   const brandsRef = useRef<HTMLDivElement | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
   const [spotlightIdx, setSpotlightIdx] = useState(0);
   const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<String | null>(null);
+
+  const handleRestaurantClick = (restaurantId: String) => {
+    setSelectedRestaurant(restaurantId);
+    if (onSelectRestaurant)
+      onSelectRestaurant(restaurantId);
+  };
+
   useEffect(() => {
     // Fetch restaurants for default brands if brands prop is not provided and not already loaded
     if ((!brands || brands.length === 0) && restaurants.length === 0) {
@@ -118,18 +127,24 @@ export default function PopularBrands({ brands = [] }: Props) {
             {(
               brands.length > 0
                 ? brands
-                : restaurants.map((r) => r.brandUrl || r.logoUrl)
+                : restaurants
             ).map((src, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 w-16 h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors"
+                onClick={() => handleRestaurantClick(src.id)}
+                className={`flex-shrink-0 w-16 h-16 bg-white rounded-lg border ${
+                  selectedRestaurant === src.id
+                    ? "border-blue-500 shadow-md"
+                    : "border-gray-200"
+                } flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors`}
               >
                 <img
-                  src={src}
+                  src={src.brandUrl || src.logoUrl}
                   alt={`brand-${i}`}
                   className="w-10 h-10 object-contain rounded"
                 />
               </div>
+
             ))}
           </div>
         </div>
