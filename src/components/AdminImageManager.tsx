@@ -86,7 +86,7 @@ export default function AdminPanel() {
 
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter Your Key to proceed.");
+    if (!apiKey) return alert("Please enter Your Key to proceed. As part of registration, you would have received a key via email.");
     if (!form.name || !form.address || !form.logo || !form.country) {
       return alert("Please fill in all required fields (Name, Address, Country, Logo).");
     }
@@ -185,7 +185,7 @@ export default function AdminPanel() {
           <input type="radio" name="mode" value="manual" checked={mode === "manual"} onChange={() => setMode("manual")} /> Manual Entry
         </label>
         <label className="flex items-center gap-1">
-          <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Processing
+          <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Loading
         </label>
         <input type="text" placeholder="Your Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="border p-1 rounded ml-4 flex-1" />
       </div>
@@ -355,9 +355,9 @@ export default function AdminPanel() {
       {/* ===== Bulk Processing Section ===== */}
       {mode === "bulk" && (
         <section className="border rounded p-4 shadow">
-          <h2 className="text-lg font-bold mb-4">Bulk Processing</h2>
+          <h2 className="text-lg font-bold mb-4">Bulk Loading</h2>
           <button onClick={handleBulkProcessing} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-            Start Bulk Processing
+            Start Bulk Loading
           </button>
         </section>
       )}
