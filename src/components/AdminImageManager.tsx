@@ -104,7 +104,12 @@ export default function AdminPanel() {
       setLogoPreview(null);
       setBrandPreview(null);
       if (offerInputRef.current) offerInputRef.current.value = "";
-      document.querySelectorAll('input[type="file"]').forEach(input => (input.value = ""));
+      document.querySelectorAll('input[type="file"]').forEach((input) => {
+        if (input instanceof HTMLInputElement) {
+          input.value = "";
+        }
+      });
+
     } catch (err) {
       console.error(err);
       alert("Error saving restaurant");

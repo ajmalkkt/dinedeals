@@ -118,6 +118,7 @@ function Home() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    //scrollToOffers();  // 🍽 scroll to offers on typing..
   };
 
   const handleFilterChange = (payload: {
@@ -148,6 +149,7 @@ function Home() {
       }
       //Clear the search box once a cuisine is selected
       handleClearSearch(isSearch);
+      scrollToOffers();
     } catch (error) {
       console.error("Error fetching cuisine offers:", error);
     } finally {
@@ -179,6 +181,14 @@ function Home() {
     }
   };
 
+  // Scroll to offers section when a cuisine or restaurant is selected
+  const offersSectionRef = React.useRef<HTMLElement | null>(null);
+  const scrollToOffers = () => {
+    setTimeout(() => {
+      offersSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200); // small delay to let DOM update
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <TopHeader
@@ -208,7 +218,7 @@ function Home() {
           </section>
         )}
 
-        <section>
+        <section ref={offersSectionRef} className="mb-12">
           <h2 className="text-2xl font-semibold mb-1.5">Hey, Enjoy your offers here...</h2>
           <OffersGrid
             offers={filteredOffers}
