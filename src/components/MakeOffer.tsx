@@ -129,11 +129,11 @@ export default function MakeOfferOnline() {
         {/* ValidTo */}
         <div className="mb-4">
             <label className="block font-medium text-gray-700 mb-1">
-            New Valid Till Date
+            New Expiry Date
             </label>
             <DatePicker
             selected={validTo}
-            onChange={(date) => setValidTo(date)}
+            onChange={(date: Date | null) => setValidTo(date ?? new Date())}
             className="w-full border border-gray-300 rounded px-3 py-2"
             placeholderText="Select date"
             dateFormat="yyyy-MM-dd"
@@ -150,7 +150,7 @@ export default function MakeOfferOnline() {
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter your API key"
+            placeholder="Enter your key"
             />
         </div>
 
