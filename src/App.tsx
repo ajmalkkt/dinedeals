@@ -2,6 +2,11 @@ import { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./components/home";
 import AdminImageManager from "./components/AdminImageManager";
+import About from "./components/About";
+import MakeOffer from "./components/MakeOffer";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+            
 
 function App() {
   return (
@@ -11,7 +16,20 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/admin" element={<AdminImageManager />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/make-offer" element={<MakeOffer />} />
           </Routes>
+          {/* Toast container must be here */}
+          <ToastContainer
+            position="top-center"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            pauseOnHover
+            draggable
+            theme="colored"
+          />
         </div>
       </div>
     </Suspense>

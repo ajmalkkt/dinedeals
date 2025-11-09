@@ -1,6 +1,7 @@
 // Service for offers. Returns Promises so UI components can consume the same API
 // whether data comes from local JSON or a backend endpoint later.
 
+import { act } from 'react';
 import { OFFERS_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
 
@@ -97,6 +98,39 @@ export async function deleteOffer(id, options = {}) {
   }
 }
 
+//activate offers  router.patch("/activate/:id", verifyApiToken, activateOffer);
+export async function activateOffer(id, options = {}) {
+  try {
+    const res = await fetch(`${OFFERS_URL}/activate/${id}`, {
+      method: 'PATCH',
+      headers: options.headers || {},
+    });
+    if (!res.ok) throw new Error('Failed to activate offer');
+    return await res.json();
+  } catch (err) {
+    console.error('[OfferService] activateOffer error:', err);
+    throw err;
+  }
+}
+
+export async function getInactiveOffers() {
+  const res = await fetch(`${OFFERS_URL}/all/inactive`);
+  if (!res.ok) throw new Error("Failed to fetch inactive offers");
+  return res.json();
+}
+
+export async function activateOffers(payload) {
+  const res = await fetch(`${OFFERS_URL}/bulk-activate`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to activate offers");
+  return res.json();
+}
+
+
+
 // Get offer image URL
 export function getOfferImageUrl(id) {
   return `${OFFERS_URL}/${id}/image`;
@@ -113,4 +147,8 @@ export default {
   uploadOffer,
   deleteOffer,
   getOfferImageUrl,
+  activateOffer,
+  activateOffers,
+  getInactiveOffers,
+  searchOffersByCuisine,
 };
