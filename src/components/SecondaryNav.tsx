@@ -3,6 +3,7 @@ import {
   SHOW_ENTERTAINMENT,
   SHOW_FINANCIAL_SERVICE,
   SHOW_CUISINE_NAV,
+  cuisineLists,
 } from "../config/appConfig";
 
 interface Props {
@@ -23,35 +24,6 @@ const cuisineList = [
   { name: "Pure Veg", img: "/images/cuisines/PureVeg.png" },
   { name: "Ice cream", img: "/images/cuisines/icecream.png" },
 ];
-const cuisineLists = [
-  { name: "Qatari Dine", img: "/images/cuisines/QatariDine.png" },
-  { name: "Arabic Dishes", img: "/images/cuisines/ArabicDishes.png" },
-  { name: "Mandi", img: "/images/cuisines/Mandi.png" },
-  { name: "Fried Chicken", img: "/images/cuisines/FriedChicken.png" },
-  { name: "Grill", img: "/images/cuisines/Grill.png" },
-  { name: "Shawaya", img: "/images/cuisines/Shawaya.png" },
-  { name: "Shawarma", img: "/images/cuisines/Shawarma.png" },
-  { name: "Pizza", img: "/images/cuisines/Pizza.png" },
-  { name: "Burger", img: "/images/cuisines/Burger.png" },
-  { name: "Sandwich", img: "/images/cuisines/Sandwich.png" },
-  { name: "Bakes", img: "/images/cuisines/Bakes.png" },
-  { name: "Juice", img: "/images/cuisines/Juice.png" },
-  { name: "Falooda", img: "/images/cuisines/Falooda.png" },
-  { name: "Ice Cream", img: "/images/cuisines/IceCream.png" },
-  { name: "Dessert", img: "/images/cuisines/Dessert.png" },
-  { name: "Coffee", img: "/images/cuisines/Coffee.png" },
-  { name: "Tea", img: "/images/cuisines/Tea.png" },
-  { name: "Healthy", img: "/images/cuisines/Healthy.png" },
-  { name: "Philipino Cuisine", img: "/images/cuisines/PhilipinoCuisine.png" },
-  { name: "Chinese", img: "/images/cuisines/Chinese.png" },
-  { name: "Italian", img: "/images/cuisines/Italian.png" },
-  { name: "Thailand Cuisine", img: "/images/cuisines/ThailandCuisine.png" },
-  { name: "Pakistani Food", img: "/images/cuisines/PakistaniFood.png" },
-  { name: "South Indian", img: "/images/cuisines/SouthIndian.png" },
-  { name: "North Indian", img: "/images/cuisines/NorthIndian.png" },
-  { name: "Sadya", img: "/images/cuisines/Sadya.png" },
-];
-
 
 const categoryList = [
   "All Offers",
@@ -208,7 +180,7 @@ const SecondaryNav: React.FC<Props> = ({
         </div>
 
         {/* --- Cuisine items --- */}
-        {cuisineList.map((c) => (
+        {cuisineLists.map((c) => (
           <div
             key={c.name}
             onClick={() => handleCuisineClick(c.name)}
