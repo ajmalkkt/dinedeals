@@ -62,25 +62,25 @@ export default function TopHeader({
   return (
     <header className="bg-white shadow-md w-full">
       <div className="border-b border-gray-200">
-        <div className="container mx-auto px-2 py-2 w-full">
+        <div className="container mx-auto px-4 py-2 w-full">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between w-full">
             {/* Level 1: logo + mobile menu */}
             <div className="flex flex-row items-center justify-between w-full">
-              <div
-                className="flex items-center gap-1 bg-gradient-to-r from-orange-100 to-orange-200 text-blue-700 px-1.5 py-1 rounded-xl font-semibold text-lg shadow-sm border border-blue-300"
-                role="button"
+              <button
+                className="flex items-center bg-transparent p-0"
                 onClick={() => {
                   navigate("/");
                   setMenuOpen(false);
                 }}
+                aria-label="DineDeals Home"
               >
                 <img
-                  src="/browseQtr.webp"
-                  alt="DineDeals Icon"
-                  className="w-6 h-6 rounded-full border border-orange-300 shadow-sm"
+                  src="/browseqatar.jpg"
+                  alt="DineDeals"
+                  className="w-13 h-11 object-contain shadow-sm"
                 />
-                <span className="block truncate tracking-wide">DineDeals</span>
-              </div>
+                <span className="sr-only">DineDeals</span>
+              </button>
 
               {/* MOBILE: country + menu (mobileContainerRef wraps the trigger and menu) */}
               <div className="flex md:hidden items-center gap-2 relative" ref={mobileContainerRef}>
