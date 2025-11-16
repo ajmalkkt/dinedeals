@@ -30,7 +30,15 @@ export default function LoginPage() {
         // Keycloak will redirect - navigation back happens after redirect
       }
     } catch (err: any) {
-      setError(err?.message || 'Login failed');
+      // Map common Firebase/auth errors to friendly messages
+      const code = err?.code || err?.message || '';
+      if (typeof code === 'string' && code.includes('auth/')) {
+        setError('Username or password is incorrect... Please try again');
+      } else if (typeof code === 'string' && code.toLowerCase().includes('invalid-email')) {
+        setError('Please enter a valid email address');
+      } else {
+        setError(err?.message || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +71,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-  {auth.provider === 'FIREBASE' ? (
+      {auth.provider === 'FIREBASE' ? (
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
             <label className="block text-sm">Email</label>
@@ -86,7 +94,7 @@ export default function LoginPage() {
           </button>
         </div>
       )}
-      <footer className="bg-muted py-6 px-4 mt-8">
+      <footer className="bg-muted py-4 px-4 mt-2">
         <div className="container mx-auto text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-3">
             {/* <p className="m-0">© 2025 Restaurant Offers Platform. All rights reserved.</p>
