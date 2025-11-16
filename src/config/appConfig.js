@@ -10,6 +10,9 @@
   const SHOW_OFFER_AVATAR = import.meta.env.VITE_SHOW_OFFER_AVATAR === "true";
   const LOG_API_RESPONSE = import.meta.env.VITE_LOG_API_RESPONSE === "true";
 
+  // Auth provider: KEYCLOAK or FIREBASE
+  const AUTH_PROVIDER = (import.meta.env.VITE_AUTH_PROVIDER || "KEYCLOAK").toUpperCase();
+
   const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || "Qatar";
   const DEFAULT_CATEGORY = import.meta.env.VITE_DEFAULT_CATEGORY || "All Offers";
 
@@ -116,6 +119,8 @@ export default {
   countryMap,
   cuisineLists,
 };
+
+export { AUTH_PROVIDER };
 
 export {
   DEFAULT_COUNTRY,

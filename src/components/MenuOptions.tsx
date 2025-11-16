@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Smartphone, Apple } from "lucide-react";
+import { Smartphone, Apple, LogOut } from "lucide-react";
+import useAuth from "../auth/useAuth";
 
 interface MenuOptionsProps {
   onAddBusiness: () => void;
@@ -9,6 +10,7 @@ interface MenuOptionsProps {
 
 export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsProps) {
   const navigate = useNavigate();
+  const auth = useAuth();
 
   // ✅ Helper to navigate safely after menu closes
   const safeNavigate = (path: string) => {
@@ -71,15 +73,38 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
       </button>
 
       {/* --- Login --- */}
-      <button
-        onClick={() => {
-          setMenuOpen(false);
-          setTimeout(() => alert("Login feature coming soon!"), 120);
-        }}
-        className="block w-full text-left px-5 py-3 hover:bg-gray-50 border-b border-gray-200 text-gray-700 font-medium"
-      >
-        Login
-      </button>
+      {!auth.initialized || !auth.user ? (
+        <button
+          onClick={() => {
+            if (auth.provider === "FIREBASE") {
+              // route to custom login page for Firebase (email/password)
+              setMenuOpen(false);
+              navigate("/login");
+              return;
+            }
+            // Keycloak: trigger its login flow
+            auth.login();
+          }}
+          className="block w-full text-left px-5 py-3 hover:bg-gray-50 border-b border-gray-200 text-gray-700 font-medium"
+        >
+          Login
+        </button>
+      ) : (
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200">
+          <span className="text-sm font-medium text-gray-600">
+            {auth.user?.email || auth.user?.preferred_username}
+          </span>
+          <button
+            onClick={() => auth.logout({ redirectUri: window.location.origin } as any)}
+            aria-label="Logout"
+            title="Logout"
+            className="ml-3 text-gray-700 hover:text-black hover:bg-gray-50 p-2 rounded"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
 
       {/* --- Mobile App Section --- */}
       <div className="flex justify-around items-center py-4 bg-gray-50">
