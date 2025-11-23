@@ -80,7 +80,7 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
       <div className="bg-gray-50 rounded-lg border p-2 relative overflow-hidden">
         <div className="flex items-center justify-between mb-1 px-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold animate-pulse bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">In the Spotlight</h3>
+            <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
             {/* <img
               src={spotlightIdx === 0 ? "/images/spotlight.gif" : "/images/spotlight-food.gif"}
               alt="Spotlight"

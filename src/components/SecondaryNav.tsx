@@ -117,9 +117,9 @@ const SecondaryNav: React.FC<Props> = ({
   // --- cuisine list layout for navigation. SHOW_CUISINE_NAV=true ---
   return (
     <div className="bg-white w-full py-4">
-      <div className="container mx-auto px-2">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-bold bg-gradient-to-r from-purple-600 to-pink-500 text-white px-3 py-1 rounded-md text-sm font-semibold">What's on your mind?</h2>
+          <h2 className="font-bold brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold">What's on your mind?</h2>
           <div className="flex gap-2">
             <button
               className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-2xl text-gray-600 hover:bg-gray-200"

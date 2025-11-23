@@ -15,7 +15,7 @@ export default function FeaturedCard({ title = "Discover Amazing Deals", subtitl
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">{title}</h2>
+                <h2 className="text-2xl font-bold mb-1 brand-gradient-text">{title}</h2>
                 <p className="text-foreground text-sm">{subtitle}</p>
               </div>
               <div className="w-24">

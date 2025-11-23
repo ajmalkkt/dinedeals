@@ -75,13 +75,13 @@ export default function TopHeader({
                 aria-label="DineDeals Home"
               >
                 <img
-                  src="/browseqatar.jpg"
+                  src="/bqLogo.jpg"
                   alt="DineDeals"
                   className="w-13 h-11 object-contain shadow-sm"
                 />
                 <span className="sr-only">DineDeals</span>
-                <span className="ml-3 inline-flex items-center gap-1 px-1 py-1 md:px-3 md:py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold text-xs md:text-sm">
-                  <img src="/images/chef.jpg" alt="chef" className="w-4 h-4 md:w-5 md:h-5 object-cover rounded" />
+                <span className="ml-3 inline-flex items-center gap-1 px-1 py-1 md:px-3 md:py-1 rounded-full brand-gradient-bg text-white font-semibold text-xs md:text-sm">
+                  <img src="/images/chef.jpg" alt="chef" className="w-4 h-4 md:w-5 md:h-5 object-cover rounded waving-chef" />
                   <span className="brand-wave">Dine Offers</span>
                 </span>
               </button>
@@ -91,7 +91,7 @@ export default function TopHeader({
                 <select
                   value={selectedCountry}
                   onChange={(e) => onSelectCountry(e.target.value)}
-                  className="bg-blue-600 text-white px-1 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[60%] min-w-[80px] max-w-[120px] ml-auto block"
+                  className="bg-blue-600 brand-gradient-bg text-white px-1 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[60%] min-w-[80px] max-w-[120px] ml-auto block"
                 >
                   <option value="Qatar">🇶🇦 QA-EN</option>
                   <option value="UAE">🇦🇪 AE-EN</option>
@@ -150,7 +150,7 @@ export default function TopHeader({
                 }}
               />
               <button
-                className="bg-purple-600 text-white px-5 py-1 rounded-full font-medium text-sm"
+                className="brand-gradient-bg text-white px-5 py-1 rounded-full font-medium text-sm"
                 onClick={() => handleSearchClick()}
               >
                 Search
@@ -161,7 +161,7 @@ export default function TopHeader({
                 <select
                   value={selectedCountry}
                   onChange={(e) => onSelectCountry(e.target.value)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[70%] min-w-[90px] max-w-[140px]"
+                  className="bg-blue-600 brand-gradient-bg text-white px-3 py-1 rounded text-sm font-medium border-none outline-none cursor-pointer w-[70%] min-w-[90px] max-w-[140px]"
                 >
                   <option value="Qatar">QA-EN</option>
                   <option value="UAE">AE-EN</option>

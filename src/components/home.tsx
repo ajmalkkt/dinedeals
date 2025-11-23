@@ -219,7 +219,7 @@ function Home() {
         )}
 
         <section ref={offersSectionRef} className="mb-12">
-          <h2 className="font-bold bg-gradient-to-r from-purple-600 to-pink-500 text-white px-3 py-1 rounded-md text-sm font-semibold">Hey, Enjoy your offers here...</h2>
+          <h2 className="font-bold brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold mb-1">Hey, Enjoy your offers here...</h2>
           <OffersGrid
             offers={filteredOffers}
             restaurants={restaurants}

@@ -79,14 +79,34 @@
 
     /* Section heading pill used across pages */
     .section-heading {
-      /* reduced height: smaller padding and font-size to make heading half-height */
-      @apply inline-block bg-gradient-to-r from-purple-600 to-pink-500 text-white px-3 py-1 rounded-md text-sm font-semibold;
+  /* reduced height: smaller padding and font-size to make heading half-height */
+  @apply inline-block text-white px-3 py-1 rounded-md text-sm font-semibold;
+  /* use brand gradient variable via helper class when needed */
       line-height: 1;
     }
 
     /* Brand pill for header */
     .brand-pill {
-      @apply ml-3 px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold shadow-sm;
+      @apply ml-3 px-3 py-1 rounded-full text-white font-semibold shadow-sm;
+    }
+
+    /* Brand gradient configuration - change these variables to update the brand gradient globally */
+    :root {
+      --brand-gradient-from: #ed703a; /* purple-600 #7c3aed   Red #ed703a*/
+      --brand-gradient-to: #ec4899; /* pink-500  #ec4899 */
+    }
+
+    /* background gradient helper */
+    .brand-gradient-bg {
+      background-image: linear-gradient(90deg, var(--brand-gradient-from) 0%, var(--brand-gradient-to) 100%);
+    }
+
+    /* text gradient helper (clip) */
+    .brand-gradient-text {
+      background-image: linear-gradient(90deg, var(--brand-gradient-from) 0%, var(--brand-gradient-to) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     /* continuous wave animation for brand icon/text (3s interval) */
     @keyframes brand-wave {
@@ -105,3 +125,18 @@
       animation: brand-wave 3s ease-in-out infinite;
     }
   }
+
+.waving-chef {
+  width: 30px; height: 20px;/* Adjust size */
+  transform-origin: bottom center; /* Pivot from bottom */
+  animation: wave-animation 2s infinite ease-in-out;
+}
+
+@keyframes wave-animation {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-10deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
