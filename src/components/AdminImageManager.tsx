@@ -348,7 +348,7 @@ export default function AdminPanel() {
           <div className="flex flex-wrap gap-3">
             {offers.map((o) => (
               <div key={o.id} className="border p-2 rounded relative w-28 md:w-32">
-                <img src={`/api/offers/${o.id}/image`} alt={o.title} className="w-full h-20 object-cover rounded" />
+                <img src={o.imageUrl} alt={o.title} className="w-full h-20 object-cover rounded" />
                 <p className="text-xs mt-1 truncate">{o.title}</p>
                 <button onClick={() => handleDeleteOffer(o.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded px-1 text-xs">×</button>
               </div>

@@ -39,6 +39,21 @@ interface OfferCardProps {
   showOfferAvatar?: boolean;
 }
 
+const handleDirections = (restaurantAddress) => {
+    if (!restaurantAddress) return;
+
+    const address = encodeURIComponent(restaurantAddress);
+    
+    // Option 1: Open specifically in "Directions" mode (Current Location -> Destination)
+    const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+
+    // Option 2: Open just the location pin
+    // const mapUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+
+    // Open in a new tab
+    window.open(mapUrl, '_blank', 'noopener,noreferrer');
+};
+
 const OfferCard: React.FC<OfferCardProps> = ({
   offer,
   restaurantName,
@@ -113,7 +128,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
             <div className="mb-1">
               {restaurantAddress && (
                   <>
-                    <MapPin className="inline h-4 w-4 text-muted-foreground" />
+                    <MapPin className="inline h-4 w-4 text-muted-foreground"
+                    onClick={() => handleDirections(restaurantAddress)} />
                     <span>{restaurantAddress}</span>
                   </>
                 )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import FilterBar from "./FilterBar";
 import OffersGrid from "./OffersGrid";
 import TopHeader from "./TopHeader";
@@ -83,6 +83,14 @@ function Home() {
   }, []);
 
   // filter locally
+  const restaurantLookup = useMemo(() => {
+    const lookup = new Map();
+    restaurants.forEach((r) => {
+      lookup.set(r.id, r.name.toLowerCase());
+    });
+    return lookup;
+  }, [restaurants]);
+
   useEffect(() => {
     let result = [...offers];
     if (selectedCountry && countryMap[selectedCountry]) {
@@ -105,16 +113,17 @@ function Home() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter((offer) => {
-        const restaurant = restaurants.find((r) => r.id === offer.restaurantId);
+        // Fast lookup using the Map we created earlier
+        const restaurantName = restaurantLookup.get(offer.restaurantId) || "";
         return (
-          offer.title.toLowerCase().includes(query) ||
-          offer.description.toLowerCase().includes(query) ||
-          (restaurant && restaurant.name.toLowerCase().includes(query))
+          (offer.title && offer.title.toLowerCase().includes(query)) ||
+          (offer.description && offer.description.toLowerCase().includes(query)) ||
+          restaurantName.includes(query)
         );
       });
     }
     setFilteredOffers(result);
-  }, [offers, filters, searchQuery, restaurants, selectedCountry, selectedCategory]);
+  }, [offers, filters, searchQuery, restaurantLookup, restaurants, selectedCountry, selectedCategory]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

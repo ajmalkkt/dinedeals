@@ -54,6 +54,21 @@ const OfferCard = ({
     });
   };
 
+  const handleDirections = (restaurantAddress) => {
+    if (!restaurantAddress) return;
+
+    const address = encodeURIComponent(restaurantAddress);
+    
+    // Option 1: Open specifically in "Directions" mode (Current Location -> Destination)
+    const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+
+    // Option 2: Open just the location pin
+    // const mapUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+
+    // Open in a new tab
+    window.open(mapUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <Card className="w-full max-w-[320px] h-[340px] overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
       <CardHeader className="p-3 pb-0 relative">
@@ -68,7 +83,8 @@ const OfferCard = ({
                 {restaurantName}
                 {restaurantAddress && (
                   <>
-                    <MapPin className="inline h-4 w-4 text-muted-foreground" />
+                    <MapPin className="inline h-4 w-4 text-muted-foreground"
+                    onClick={() => handleDirections(restaurantAddress)}  />
                     <span>{restaurantAddress}</span>
                   </>
                 )}
