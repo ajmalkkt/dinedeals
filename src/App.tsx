@@ -8,6 +8,7 @@ import LoginPage from "./components/LoginPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./ProtectedRoute";
+import LoginModal from "./components/LoginModal";
             
 
 function App() {
@@ -15,11 +16,12 @@ function App() {
     <Suspense fallback={<p>Loading...</p>}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center">
         <div className="max-w-screen-lg w-full mx-auto px-4 sm:px-6 lg:px-8 bg-white rounded-xl shadow-xl border border-gray-200">
+          <LoginModal /> {/* Add this here, outside Routes */}
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/admin" element={<ProtectedRoute><AdminImageManager /></ProtectedRoute>} />
             <Route path="/about" element={<About />} />
-            <Route path="/login" element={<LoginPage />} />
+            {/*<Route path="/login" element={<LoginPage />} /> */}
             <Route path="/make-offer" element={<ProtectedRoute><MakeOffer /></ProtectedRoute>} />
           </Routes>
           {/* Toast container must be here */}

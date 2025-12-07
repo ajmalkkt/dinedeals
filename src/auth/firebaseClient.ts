@@ -1,5 +1,15 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from 'firebase/auth';
+import { 
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+  User
+} from 'firebase/auth';
 
 // Minimal firebase client — expects env var prefixed with VITE_FIREBASE_*
 const firebaseConfig = {
@@ -63,4 +73,26 @@ export async function firebaseLogout() {
 export function getFirebaseAuth() {
   if (!auth) throw new Error('Firebase is not configured.');
   return auth;
+}
+
+export async function firebaseSignup(email: string, password: string, displayName: string) {
+  if (!auth) throw new Error('Firebase not configured');
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+  
+  // Update the user's display name immediately
+  if (result.user) {
+    await updateProfile(result.user, { displayName });
+  }
+  return result.user;
+}
+
+export async function firebaseResetPassword(email: string) {
+  if (!auth) throw new Error('Firebase not configured');
+  await sendPasswordResetEmail(auth, email);
+}
+
+export async function getAuthToken(): Promise<string | undefined> {
+  if (!auth || !auth.currentUser) return undefined;
+  // true forces refresh, useful if we just updated roles
+  return await auth.currentUser.getIdToken(true); 
 }

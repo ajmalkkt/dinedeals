@@ -16,6 +16,8 @@ export default function ProtectedRoute({ children }: { children: JSX.Element }) 
     if (!auth.initialized) return;
     if (!isAuthenticated) {
       // Redirect to login page and preserve where the user wanted to go.
+      //The Login Page read the ?next= parameter and navigated them
+      // back to respective protected page.
       navigate(`/login?next=${encodeURIComponent(next)}`, { replace: true });
     }
   }, [auth.initialized, isAuthenticated, navigate, next]);

@@ -2,6 +2,7 @@
 
 import { RESTAURANTS_URL,BULK_API_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
+import { getAuthToken } from '../auth/firebaseClient'; 
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
   try {
@@ -62,10 +63,17 @@ export async function getRestaurantsByCountry(country) {
 // Upload or update a restaurant with images
 export async function uploadRestaurant(formData, options = {}) {
   try {
+     // ✅ FIX: Await the token here first
+    const token = await getAdminAuthToken();
     const res = await fetch(`${RESTAURANTS_URL}`, {
       method: 'POST',
       body: formData,
-      headers: options.headers || {},
+       headers: {
+        ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+      // If sending FormData, do NOT set Content-Type manually.
+      },
     });
     if (!res.ok) throw new Error('Failed to upload restaurant');
     return await res.json();
@@ -77,10 +85,15 @@ export async function uploadRestaurant(formData, options = {}) {
 
 export async function uploadBulkData(options = {}) {
   try {
+    // 1. Merge the token into the headers
+    const token = await getAdminAuthToken();
     const res = await fetch(`${BULK_API_URL}`, {
       method: "POST",
       headers: {
         ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+      // If sending FormData, do NOT set Content-Type manually.
       },
       // assuming backend accepts no body, or you can add formData/json if needed
     });
@@ -91,6 +104,20 @@ export async function uploadBulkData(options = {}) {
     throw err;
   }
 }
+
+//Get the auth token for admin operations
+export async function getAdminAuthToken() {
+  // 1. Get the Firebase Token automatically
+    const token = await getAuthToken();
+
+    if (!token) {
+      console.warn("User is not authenticated. Please login...");
+      // You could also throw an error here to stop the request immediately
+      throw new Error("Authentication required"); 
+    }
+    return token;
+}
+
 // Get logo or brand image URL for restaurant
 export function getRestaurantImageUrl(id, type = 'logo') {
   return `${RESTAURANTS_URL}/${id}/image/${type}`;

@@ -4,6 +4,20 @@
 import { act } from 'react';
 import { OFFERS_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
+import { getAuthToken } from '../auth/firebaseClient'; 
+
+//Get the auth token for admin operations
+export async function getAdminAuthToken() {
+  // 1. Get the Firebase Token automatically
+    const token = await getAuthToken();
+
+    if (!token) {
+      console.warn("User is not authenticated. Please login...");
+      // You could also throw an error here to stop the request immediately
+      throw new Error("Authentication required"); 
+    }
+    return token;
+}
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
   try {
@@ -70,10 +84,16 @@ export async function searchOffersByCuisine(cuisine) {
 // Upload or update an offer with image
 export async function uploadOffer(formData, options = {}) {
   try {
+    const token = await getAdminAuthToken();
     const res = await fetch(`${OFFERS_URL}`, {
       method: 'POST',
       body: formData,
-      headers: options.headers || {},
+      headers: {
+        ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+      // If sending FormData, do NOT set Content-Type manually.
+      },
     });
     if (!res.ok) throw new Error('Failed to upload offer');
     return await res.json();
@@ -86,9 +106,15 @@ export async function uploadOffer(formData, options = {}) {
 // Delete offer by ID
 export async function deleteOffer(id, options = {}) {
   try {
+    const token = await getAdminAuthToken();
     const res = await fetch(`${OFFERS_URL}/${id}`, {
       method: 'DELETE',
-      headers: options.headers || {},
+      headers: {
+        ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+      // If sending FormData, do NOT set Content-Type manually.
+      },
     });
     if (!res.ok) throw new Error('Failed to delete offer');
     return await res.json();
@@ -101,9 +127,15 @@ export async function deleteOffer(id, options = {}) {
 //activate offers  router.patch("/activate/:id", verifyApiToken, activateOffer);
 export async function activateOffer(id, options = {}) {
   try {
+    const token = await getAdminAuthToken();
     const res = await fetch(`${OFFERS_URL}/activate/${id}`, {
       method: 'PATCH',
-      headers: options.headers || {},
+      headers: {
+        ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+      // If sending FormData, do NOT set Content-Type manually.
+      },
     });
     if (!res.ok) throw new Error('Failed to activate offer');
     return await res.json();
@@ -120,9 +152,10 @@ export async function getInactiveOffers() {
 }
 
 export async function activateOffers(payload) {
+  const token = await getAdminAuthToken();
   const res = await fetch(`${OFFERS_URL}/bulk-activate`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey },
+    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey,"Authorization": `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error("Failed to activate offers");
