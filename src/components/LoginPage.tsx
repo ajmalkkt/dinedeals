@@ -64,7 +64,7 @@ export default function LoginPage() {
           <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
         <div className="flex items-center gap-3">
-          <img src={'/browseqatar.jpg'} alt="Dine Deals" className="w-12 h-12 rounded shadow" />
+          <img src={'/bqLogo.jpg'} alt="Dine Deals" className="w-12 h-12 rounded shadow" />
           <div>
             <div className="text-xl font-extrabold text-purple-600">Dine Deals</div>
             <div className="text-sm text-gray-500">Discover the best local offers</div>

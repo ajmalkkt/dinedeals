@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/useAuth';
 import { useModal } from '../contexts/ModalContext';
 import { X } from 'lucide-react';
@@ -7,19 +7,32 @@ import { firebaseSignup, firebaseResetPassword } from '../auth/firebaseClient';
 type AuthMode = 'LOGIN' | 'SIGNUP' | 'FORGOT_PASSWORD';
 
 export default function LoginModal() {
-  const { isLoginOpen, closeLogin, onLoginSuccess } = useModal(); // ✅ Import onLoginSuccess
+  const { isLoginOpen, closeLogin, onLoginSuccess } = useModal();
   const auth = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('LOGIN');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('public'); // Default role
+  const [role, setRole] = useState('public'); 
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // ✅ 1. RESET STATE ON CLOSE
+  // This ensures every time the modal opens, it starts at "Sign In" with no errors
+  useEffect(() => {
+    if (!isLoginOpen) {
+      setMode('LOGIN');
+      setError(null);
+      setMsg(null);
+      setPassword(''); // Clear password for security
+      // We keep 'email' populated as a convenience to the user
+    }
+  }, [isLoginOpen]);
+
+  // If modal is closed, don't render anything
   if (!isLoginOpen) return null;
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -31,7 +44,7 @@ export default function LoginModal() {
     try {
       if (mode === 'LOGIN') {
         await auth.loginWithEmail?.(email, password);
-        onLoginSuccess(); // ✅ Run the callback (e.g., navigate to admin)
+        onLoginSuccess(); // Use context callback to navigate
       } 
       else if (mode === 'SIGNUP') {
         const user = await firebaseSignup(email, password, name);
@@ -44,55 +57,83 @@ export default function LoginModal() {
         //   body: JSON.stringify({ role })
         // });
         
-        setMsg("Account created! Please login.");
-        setMode('LOGIN');
+        setMsg("Account created! You are now logged in.");
+        onLoginSuccess();  
       } 
       else if (mode === 'FORGOT_PASSWORD') {
         await firebaseResetPassword(email);
-        setMsg(`Password reset link sent to ${email}`);
-        setMode('LOGIN');
+        setMsg(`Password reset link sent to ${email}. Please check your spam folder if you do not find it in inbox.`);
+        setTimeout(() => setMode('LOGIN'), 5000); // Auto switch back after 3s
       }
     } catch (err: any) {
-      // Clean up error messages
-      const msg = err.message || "An error occurred";
-      if (msg.includes("auth/user-not-found")) setError("No user found with this email.");
-      else if (msg.includes("auth/wrong-password")) setError("Incorrect password.");
-      else if (msg.includes("auth/email-already-in-use")) setError("Email already exists.");
-      else setError(msg);
+      const message = err.message || "An error occurred";
+      // Friendly error mapping
+      if (message.includes("auth/user-not-found") || message.includes("auth/invalid-credential")) {
+        setError("Invalid email or password.");
+      } else if (message.includes("auth/email-already-in-use")) {
+        setError("This email is already registered.");
+      } else if (message.includes("auth/weak-password")) {
+        setError("Password should be at least 6 characters.");
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+      <div 
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()} // Prevent clicking modal from closing it
+      >
         
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-800">
-            {mode === 'LOGIN' && 'Welcome Back'}
-            {mode === 'SIGNUP' && 'Create Account'}
-            {mode === 'FORGOT_PASSWORD' && 'Reset Password'}
-          </h2>
-          <button onClick={closeLogin} className="text-gray-500 hover:text-gray-700">
+        {/* ✅ 2. UPDATED HEADER WITH LOGO */}
+        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
+          <div className="flex items-center gap-3">
+            {/* Logo Image */}
+            <img 
+              src="/logo.png" 
+              alt="Dine Offers" 
+              className="w-10 h-10 rounded-full shadow-sm object-cover border border-gray-200" 
+            />
+            
+            {/* Dynamic Title */}
+            <div className="flex flex-col">
+              <h2 className="text-xl font-bold text-gray-800 leading-tight">
+                {mode === 'LOGIN' && 'Welcome Back'}
+                {mode === 'SIGNUP' && 'Create Account'}
+                {mode === 'FORGOT_PASSWORD' && 'Reset Password'}
+              </h2>
+              <span className="text-xs text-gray-500 font-medium">
+                Brwose Qatar's best dining deals
+              </span>
+            </div>
+          </div>
+
+          <button 
+            onClick={closeLogin} 
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors"
+          >
             <X size={24} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6">
-          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-          {msg && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded text-sm">{msg}</div>}
+        <div className="p-6 overflow-y-auto">
+          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium">{error}</div>}
+          {msg && <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium">{msg}</div>}
 
           <form onSubmit={handleAuth} className="space-y-4">
             
             {mode === 'SIGNUP' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
                 <input 
                   required 
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" 
+                  placeholder="John Doe"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
                 />
@@ -100,11 +141,12 @@ export default function LoginModal() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
               <input 
                 type="email" 
                 required 
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" 
+                placeholder="you@example.com"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
               />
@@ -112,11 +154,12 @@ export default function LoginModal() {
 
             {mode !== 'FORGOT_PASSWORD' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
                 <input 
                   type="password" 
                   required 
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" 
+                  placeholder="••••••••"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
                   value={password} 
                   onChange={e => setPassword(e.target.value)} 
                 />
@@ -126,38 +169,41 @@ export default function LoginModal() {
             {/* Role Selection for Signup */}
             {mode === 'SIGNUP' && (
                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
-                <select 
-                  value={role} 
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 bg-white"
-                >
-                  <option value="public">Foodie (Public User)</option>
-                  <option value="restaurant_owner">Restaurant Owner</option>
-                </select>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">I am a...</label>
+                <div className="relative">
+                  <select 
+                    value={role} 
+                    onChange={(e) => setRole(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="public">Foodie (Browse Offers)</option>
+                    <option value="restaurant_owner">Restaurant Owner (Post Offers)</option>
+                  </select>
+                  {/* Custom arrow if needed, but default works */}
+                </div>
                </div>
             )}
 
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-gray-400"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-300 disabled:cursor-not-allowed mt-2 shadow-md hover:shadow-lg"
             >
               {loading ? 'Processing...' : (mode === 'LOGIN' ? 'Sign In' : mode === 'SIGNUP' ? 'Create Account' : 'Send Reset Link')}
             </button>
           </form>
 
           {/* Footer Links */}
-          <div className="mt-6 text-center text-sm text-gray-600 space-y-2">
+          <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-600 space-y-3">
             {mode === 'LOGIN' && (
               <>
-                <p>New here? <button onClick={() => setMode('SIGNUP')} className="text-blue-600 font-semibold">Sign up</button></p>
-                <button onClick={() => setMode('FORGOT_PASSWORD')} className="text-gray-500 hover:text-gray-800">Forgot Password?</button>
+                <p>Don't have an account? <button onClick={() => setMode('SIGNUP')} className="text-blue-600 font-bold hover:underline">Sign up</button></p>
+                <button onClick={() => setMode('FORGOT_PASSWORD')} className="text-gray-500 hover:text-gray-800 text-xs">Forgot Password?</button>
               </>
             )}
             
             {(mode === 'SIGNUP' || mode === 'FORGOT_PASSWORD') && (
-              <p>Already have an account? <button onClick={() => setMode('LOGIN')} className="text-blue-600 font-semibold">Sign In</button></p>
+              <p>Already have an account? <button onClick={() => setMode('LOGIN')} className="text-blue-600 font-bold hover:underline">Sign In</button></p>
             )}
           </div>
         </div>

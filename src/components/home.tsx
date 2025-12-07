@@ -216,7 +216,7 @@ function Home() {
         onCuisineSelect={handleCuisineSelect} 
       />
 
-      <main className="container mx-auto px-4 py-3">
+      <main className="container mx-auto px-2 py-3">
         <FeaturedCard />
         <PopularBrands 
           onSelectRestaurant={handleSelectRestaurant}

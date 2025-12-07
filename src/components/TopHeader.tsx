@@ -62,7 +62,7 @@ export default function TopHeader({
   return (
     <header className="bg-white shadow-md w-full">
       <div className="border-b border-gray-200">
-        <div className="container mx-auto px-4 py-2 w-full">
+        <div className="container mx-auto px-2 py-2 w-full">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between w-full">
             {/* Level 1: logo + mobile menu */}
             <div className="flex flex-row items-center justify-between w-full">
