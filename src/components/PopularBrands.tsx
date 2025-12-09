@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { getAllRestaurants } from "../services/restaurantService";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 interface Props {
   brands?: string[];
@@ -8,146 +8,121 @@ interface Props {
 }
 
 export default function PopularBrands({ brands = [], onSelectRestaurant }: Props) {
-  const brandsRef = useRef<HTMLDivElement | null>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
-  const [spotlightIdx, setSpotlightIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<String | null>(null);
 
-  const handleRestaurantClick = (restaurantId: String) => {
-    setSelectedRestaurant(restaurantId);
-    if (onSelectRestaurant)
-      onSelectRestaurant(restaurantId);
-  };
-
+  // 1. Fetch Data
   useEffect(() => {
-    // Fetch restaurants for default brands if brands prop is not provided and not already loaded
     if ((!brands || brands.length === 0) && restaurants.length === 0) {
       getAllRestaurants().then((data) => setRestaurants(data || []));
     }
   }, [brands, restaurants.length]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSpotlightIdx((idx) => (idx === 0 ? 1 : 0));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  // 2. Handle Selection
+  const handleRestaurantClick = (restaurantId: String) => {
+    // Toggle selection: if clicking same one, unselect (optional, or keep selected)
+    // setSelectedRestaurant(prev => prev === restaurantId ? null : restaurantId); 
+    
+    // Current logic: Always select
+    setSelectedRestaurant(restaurantId);
+    if (onSelectRestaurant) onSelectRestaurant(restaurantId);
+  };
 
-  useEffect(() => {
-    const el = brandsRef.current;
-    if (!el) return;
-    const update = () => {
-      setCanPrev(el.scrollLeft > 0);
-      setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-    };
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    let ro: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(update);
-      ro.observe(el);
-    } else {
-      window.addEventListener("resize", update);
+  // 3. Simple Scroll Functions
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const { current } = scrollRef;
+      const scrollAmount = 200; // Pixel amount to scroll
+      current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
     }
-    return () => {
-      el.removeEventListener("scroll", update);
-      if (ro) ro.disconnect();
-      else window.removeEventListener("resize", update);
-    };
-  }, [brands]);
-
-  const scrollAmount = () => {
-    const el = brandsRef.current;
-    return el ? Math.round(el.clientWidth * 0.7) : 200;
   };
 
-  const prev = () => {
-    const el = brandsRef.current;
-    if (!el) return;
-    el.scrollBy({ left: -scrollAmount(), behavior: "smooth" });
-  };
+  const dataToRender = brands.length > 0 ? brands : restaurants;
 
-  const next = () => {
-    const el = brandsRef.current;
-    if (!el) return;
-    el.scrollBy({ left: scrollAmount(), behavior: "smooth" });
-  };
+  if (dataToRender.length === 0) return null;
 
   return (
-    <section className="mb-2">
-      <div className="bg-gray-50 rounded-lg border p-2 relative overflow-hidden">
-        <div className="flex items-center justify-between mb-1 px-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
-            {/* <img
-              src={spotlightIdx === 0 ? "/images/spotlight.gif" : "/images/spotlight-food.gif"}
-              alt="Spotlight"
-              className="w-8 h-8 animate-bounce"
-              onError={(e) => { e.currentTarget.src = '/images/offers/offer-1.jpg'; }}
-            /> */}
-          </div>
-        </div>
+    <section className="mb-6">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
+        <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
+        {/* Optional: Add animated icon back if needed */}
+      </div>
 
-        <div className="relative">
-          {/* Left Arrow */}
-          <button
-            aria-label="previous"
-            onClick={prev}
-            disabled={!canPrev}
-            className={`absolute left-2 top-1/2 -translate-y-1/2 z-30 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${
-              !canPrev ? "opacity-40 pointer-events-none" : ""
-            }`}
-          >
-            <ChevronLeft className="h-5 w-5 text-gray-700" />
-          </button>
+      <div className="relative group">
+        
+        {/* 
+           LEFT ARROW 
+           - Hidden on mobile (touch devices scroll naturally)
+           - Visible on Desktop (md:flex)
+           - Appears on hover (group-hover) or always visible depending on preference
+        */}
+        <button
+          onClick={() => scroll('left')}
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-full p-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30"
+          aria-label="Scroll left"
+        >
+          <ChevronLeft size={20} />
+        </button>
 
-          {/* Right Arrow */}
-          <button
-            aria-label="next"
-            onClick={next}
-            disabled={!canNext}
-            className={`absolute right-2 top-1/2 -translate-y-1/2 z-30 p-2 bg-white rounded-full shadow-sm border hover:shadow-md ${
-              !canNext ? "opacity-40 pointer-events-none" : ""
-            }`}
-          >
-            <ChevronRight className="h-5 w-5 text-gray-700" />
-          </button>
-
-          {/* Fade Gradients */}
-          <div className="pointer-events-none absolute left-0 top-0 h-full w-12 z-20 bg-gradient-to-r from-gray-50 via-gray-50 to-transparent" />
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-12 z-20 bg-gradient-to-l from-gray-50 via-gray-50 to-transparent" />
-
-          {/* Scroll Container */}
-          <div
-            ref={brandsRef}
-            className="flex items-center gap-1 overflow-x-hidden scroll-smooth py-1 pl-12 pr-12"
-          >
-            {(
-              brands.length > 0
-                ? brands
-                : restaurants
-            ).map((src, i) => (
+        {/* 
+           SCROLL CONTAINER 
+           - overflow-x-auto: Enables native scrolling
+           - scrollbar-hide: Hides the ugly bar (needs CSS utility)
+           - snap-x: Aligns items nicely
+        */}
+        <div
+          ref={scrollRef}
+          className="flex items-center gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-hide snap-x"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Inline style to ensure hidden scrollbar
+        >
+          {dataToRender.map((src, i) => (
+            <div
+              key={i}
+              onClick={() => handleRestaurantClick(src.id)}
+              className={`
+                snap-start flex-shrink-0 cursor-pointer flex flex-col items-center gap-2 transition-transform hover:scale-105
+              `}
+            >
+              {/* Image Circle/Card */}
               <div
-                key={i}
-                onClick={() => handleRestaurantClick(src.id)}
-                className={`flex-shrink-0 w-16 h-16 bg-white rounded-lg border ${
-                  selectedRestaurant === src.id
-                    ? "border-blue-500 shadow-md"
-                    : "border-gray-200"
-                } flex items-center justify-center shadow-sm hover:shadow-md cursor-pointer transition-colors`}
+                className={`
+                  w-16 h-16 rounded-full bg-white flex items-center justify-center border-2 overflow-hidden shadow-sm
+                  ${selectedRestaurant === src.id 
+                    ? "border-blue-600 ring-2 ring-blue-100 ring-offset-1" 
+                    : "border-gray-100 hover:border-blue-200"
+                  }
+                `}
               >
                 <img
                   src={src.brandUrl || src.logoUrl}
-                  alt={`brand-${i}`}
-                  className="w-10 h-10 object-contain rounded"
+                  alt={src.name || `brand-${i}`}
+                  className="w-12 h-12 object-contain"
+                  loading="lazy"
                 />
               </div>
 
-            ))}
-          </div>
+              {/* Optional: Brand Name Label (makes it look more like a Nav) */}
+              <span className={`text-xs font-medium truncate max-w-[70px] ${selectedRestaurant === src.id ? 'text-blue-600' : 'text-gray-600'}`}>
+                {src.name}
+              </span>
+            </div>
+          ))}
         </div>
+
+        {/* RIGHT ARROW */}
+        <button
+          onClick={() => scroll('right')}
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-full p-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100"
+          aria-label="Scroll right"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </section>
   );
