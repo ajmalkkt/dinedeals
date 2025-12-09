@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { LayoutGrid, ArrowUp } from "lucide-react"; // Import Icons
+
+// Components
 import FilterBar from "./FilterBar";
 import OffersGrid from "./OffersGrid";
 import TopHeader from "./TopHeader";
@@ -6,12 +9,11 @@ import EnquiryPopup from "./EnquiryPopup";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
-import { getAllOffers, searchOffersByCuisine, getOffersByRestaurantId } from "../services/offerService"; // 👈 add search API
+
+// Services & Config
+import { getAllOffers, searchOffersByCuisine, getOffersByRestaurantId } from "../services/offerService";
 import { getAllRestaurants } from "../services/restaurantService";
 import {
-  cuisineOptions,
-  locationOptions,
-  offerTypeOptions,
   countryMap,
   DEFAULT_COUNTRY,
   DEFAULT_CATEGORY,
@@ -19,6 +21,7 @@ import {
   SHOW_OFFER_DETAIL,
 } from "../config/appConfig";
 
+// Types
 interface Restaurant {
   id: number;
   name: string;
@@ -46,15 +49,18 @@ interface Offer {
   category: string;
 }
 
-// Available filter options are imported from ../config/appConfig
-
-
 function Home() {
+  // --- UI State ---
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [showFloatBtn, setShowFloatBtn] = useState(false); // Toggle float button visibility
+
+  // --- Data State ---
   const [offers, setOffers] = useState<Offer[]>([]);
   const [filteredOffers, setFilteredOffers] = useState<Offer[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // --- Filter State ---
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState(DEFAULT_COUNTRY);
   const [selectedCategory, setSelectedCategory] = useState(DEFAULT_CATEGORY);
@@ -64,13 +70,19 @@ function Home() {
     offerTypes: [] as string[],
   });
 
-  // initial load
+  // Refs for scrolling
+  const categoriesRef = useRef<HTMLDivElement>(null);
+  const offersSectionRef = useRef<HTMLElement | null>(null);
+
+  // 1. Initial Load
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const offersResult = await getAllOffers();
-        const restaurantsResult = await getAllRestaurants();
+        const [offersResult, restaurantsResult] = await Promise.all([
+          getAllOffers(),
+          getAllRestaurants(),
+        ]);
         setOffers(offersResult);
         setRestaurants(restaurantsResult);
       } catch (error) {
@@ -82,12 +94,24 @@ function Home() {
     fetchData();
   }, []);
 
-  // filter locally
+  // 2. Track Scrolling to show/hide Floating Button
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button if scrolled down more than 300px
+      if (window.scrollY > 300) {
+        setShowFloatBtn(true);
+      } else {
+        setShowFloatBtn(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // 3. Filtering Logic (Memoized)
   const restaurantLookup = useMemo(() => {
     const lookup = new Map();
-    restaurants.forEach((r) => {
-      lookup.set(r.id, r.name.toLowerCase());
-    });
+    restaurants.forEach((r) => lookup.set(r.id, r.name.toLowerCase()));
     return lookup;
   }, [restaurants]);
 
@@ -99,15 +123,15 @@ function Home() {
     if (selectedCategory !== "All Offers") {
       result = result.filter((offer) => offer.category === selectedCategory);
     }
-    if (filters.cuisines && filters.cuisines.length > 0) {
+    if (filters.cuisines?.length > 0) {
       result = result.filter((offer) => filters.cuisines.includes(offer.cuisine));
     }
-    if (filters.locations && filters.locations.length > 0) {
+    if (filters.locations?.length > 0) {
       result = result.filter((offer) =>
         filters.locations.some((loc) => offer.location.includes(loc))
       );
     }
-    if (filters.offerTypes && filters.offerTypes.length > 0) {
+    if (filters.offerTypes?.length > 0) {
       result = result.filter((offer) => filters.offerTypes.includes(offer.offerType));
     }
     if (searchQuery) {
@@ -125,16 +149,13 @@ function Home() {
     setFilteredOffers(result);
   }, [offers, filters, searchQuery, restaurantLookup, restaurants, selectedCountry, selectedCategory]);
 
+  // --- Handlers ---
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    //scrollToOffers();  // 🍽 scroll to offers on typing..
   };
 
-  const handleFilterChange = (payload: {
-    cuisines: string[];
-    locations: string[];
-    offerTypes: string[];
-  }) => {
+  const handleFilterChange = (payload: any) => {
     setFilters({
       cuisines: payload.cuisines || [],
       locations: payload.locations || [],
@@ -142,22 +163,18 @@ function Home() {
     });
   };
 
-  // 🍽 handle cuisine click
- 
-  const handleCuisineSelect = async (cuisine: string | null, 
-    isSearch:boolean | false) => {
+  const handleCuisineSelect = async (cuisine: string | null, isSearch: boolean | false) => {
     setLoading(true);
     try {
       if (!cuisine) {
-        // 👈 All Offers clicked → reset to all
+        // All Offers clicked → reset to all
         const all = await getAllOffers();
         setFilteredOffers(all);
       } else {
         const result = await searchOffersByCuisine(cuisine);
         setFilteredOffers(result);
       }
-      //Clear the search box once a cuisine is selected
-      handleClearSearch(isSearch);
+      if (!isSearch) setSearchQuery("");
       scrollToOffers();
     } catch (error) {
       console.error("Error fetching cuisine offers:", error);
@@ -166,23 +183,12 @@ function Home() {
     }
   };
 
-  // Inside Home component
-  //This funnction clears the search box when a cuisine is selected
-  // to avoid confusion between search and cuisine selection
-  const handleClearSearch = (isSeach : boolean | false) => {
-    if (isSeach) return; // do not clear if it is a search action
-    setSearchQuery(""); // clears text in TopHeader
-  };
-
-  // Handle restaurant selection from PopularBrands
-  const handleSelectRestaurant = async (id : String | null) => {
+  const handleSelectRestaurant = async (id: String | null) => {
     setLoading(true);
     try {
       const result = await getOffersByRestaurantId(id);
-      //console.log("Offers for restaurant id ", id, ": ", result);
       setFilteredOffers(result);
-      //Clear the search box once a restaurant is selected
-      handleClearSearch(false);
+      setSearchQuery("");
     } catch (error) {
       console.error("Error fetching cuisine offers:", error);
     } finally {
@@ -190,37 +196,69 @@ function Home() {
     }
   };
 
-  // Scroll to offers section when a cuisine or restaurant is selected
-  const offersSectionRef = React.useRef<HTMLElement | null>(null);
+  // Scroll Helpers
   const scrollToOffers = () => {
     setTimeout(() => {
-      offersSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 200); // small delay to let DOM update
+      // 80px offset for the sticky header
+      const yOffset = -80; 
+      const element = offersSectionRef.current;
+      if (element) {
+        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 200);
+  };
+
+  const scrollToCategories = () => {
+    // Scroll back up to the SecondaryNav
+    if (categoriesRef.current) {
+      // 90px offset so the Sticky TopHeader doesn't cover the categories
+      const yOffset = -90; 
+      const y = categoriesRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopHeader
-        onSearch={handleSearch}
-        selectedCountry={selectedCountry}
-        onSelectCountry={setSelectedCountry}
-        onAddBusiness={() => setEnquiryOpen(true)}
-        onSearchClick={handleCuisineSelect}
-        searchQuery={searchQuery}
-      />
+    <div className="min-h-screen bg-background relative">
+      
+      {/* 
+         ✅ STICKY TOP HEADER ONLY 
+         This stays fixed at the top. z-50 ensures it's above everything.
+      */}
+      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <TopHeader
+          onSearch={handleSearch}
+          selectedCountry={selectedCountry}
+          onSelectCountry={setSelectedCountry}
+          onAddBusiness={() => setEnquiryOpen(true)}
+          onSearchClick={handleCuisineSelect}
+          searchQuery={searchQuery}
+        />
+      </div>
 
-      <SecondaryNav
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-        onAddBusiness={() => setEnquiryOpen(true)}
-        onCuisineSelect={handleCuisineSelect} 
-      />
+      {/* 
+         ✅ CATEGORIES (SecondaryNav) 
+         This scrolls naturally with the page, but we attach a ref to scroll back to it.
+      */}
+      <div ref={categoriesRef} className="bg-white">
+        <SecondaryNav
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          onAddBusiness={() => setEnquiryOpen(true)}
+          onCuisineSelect={handleCuisineSelect} 
+        />
+      </div>
 
       <main className="container mx-auto px-2 py-3">
-        <FeaturedCard />
+        <div className="mt-2">
+          <FeaturedCard />
+        </div>
+        
         <PopularBrands 
           onSelectRestaurant={handleSelectRestaurant}
         />
+
         {!SHOW_CUISINE_NAV && (
           <section className="mb-2">
             <FilterBar onFilterChange={handleFilterChange} />
@@ -228,7 +266,9 @@ function Home() {
         )}
 
         <section ref={offersSectionRef} className="mb-12">
-          <h2 className="font-bold brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold mb-1">Hey, Enjoy your offers here...</h2>
+          <h2 className="font-bold brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold mb-1">
+            Hey, Enjoy your offers here...
+          </h2>
           <OffersGrid
             offers={filteredOffers}
             restaurants={restaurants}
@@ -238,7 +278,21 @@ function Home() {
         </section>
       </main>
 
-      <footer className="bg-muted py-6 px-4 mt-12">
+      {/* 
+        ✅ FLOATING CATEGORIES BUTTON
+        Appears only when user scrolls down.
+      */}
+      <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 transform ${showFloatBtn ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+        <button
+          onClick={scrollToCategories}
+          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg rounded-full px-2 py-1 flex items-center gap-2 font-semibold transition-transform hover:scale-105 active:scale-95"
+        >
+          <LayoutGrid size={15} />
+          <span className="text-sm">Categories</span>
+        </button>
+      </div>
+
+      <footer className="bg-muted py-6 px-4 mt-12 pb-20"> {/* pb-20 adds space for float button */}
         <div className="container mx-auto text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-3">
             <p className="m-0">© 2025 Restaurant Offers Platform. All rights reserved.</p>

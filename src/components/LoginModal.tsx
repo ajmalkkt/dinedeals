@@ -83,7 +83,7 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
       <div 
         className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()} // Prevent clicking modal from closing it
@@ -107,7 +107,7 @@ export default function LoginModal() {
                 {mode === 'FORGOT_PASSWORD' && 'Reset Password'}
               </h2>
               <span className="text-xs text-gray-500 font-medium">
-                Brwose Qatar's best dining deals
+                Brwose Qatar's best dining offers
               </span>
             </div>
           </div>
