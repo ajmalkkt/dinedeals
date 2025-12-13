@@ -5,6 +5,7 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import AuthProvider from "./auth/AuthProvider";
 import { ModalProvider } from "./contexts/ModalContext";
+import { FavoritesProvider } from "./contexts/FavoritesContext";
 
 const basename = import.meta.env.BASE_URL;
 
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter basename={basename}>
       <AuthProvider>
         <ModalProvider>
-          <App />
+          <FavoritesProvider>
+            <App />
+          </FavoritesProvider>
         </ModalProvider>
       </AuthProvider>
     </BrowserRouter>

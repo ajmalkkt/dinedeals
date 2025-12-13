@@ -10,6 +10,9 @@ import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
 
+// Hooks / Context
+import { useFavoritesContext } from "../contexts/FavoritesContext";
+
 // Services & Config
 import { getAllOffers, searchOffersByCuisine, getOffersByRestaurantId } from "../services/offerService";
 import { getAllRestaurants } from "../services/restaurantService";
@@ -50,6 +53,9 @@ interface Offer {
 }
 
 function Home() {
+  // --- Favorites Context ---
+  const { favorites, toggleFavorite } = useFavoritesContext();
+
   // --- UI State ---
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [showFloatBtn, setShowFloatBtn] = useState(false); // Toggle float button visibility
@@ -274,6 +280,8 @@ function Home() {
             restaurants={restaurants}
             isLoading={loading}
             showOfferDetail={SHOW_OFFER_DETAIL}
+            favorites={favorites.map((f) => f.id)}
+            onToggleFavorite={toggleFavorite}
           />
         </section>
       </main>

@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Smartphone, Apple, LogOut } from "lucide-react";
+import { Smartphone, Apple, LogOut, Heart } from "lucide-react";
 import useAuth from "../auth/useAuth";
 import { useModal } from "../contexts/ModalContext"; // 1. Import the Context
+import { ENABLE_SIGNUP } from "../config/appConfig";
 
 interface MenuOptionsProps {
   onAddBusiness: () => void;
@@ -69,7 +70,16 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
       >
         About Us
       </button>
-      
+
+      {/* --- Favourites --- */}
+      <button
+        onClick={() => safeNavigate("/favourites")}
+        className="block w-full text-left px-5 py-3 hover:bg-blue-50 border-b border-gray-200 text-gray-700 font-medium flex items-center gap-2"
+      >
+        <Heart className="w-4 h-4" />
+        Favourites
+      </button>
+
       {/* --- Register Business --- */}
       <button
         onClick={() => {
@@ -114,7 +124,7 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
           onClick={handleAuthClick}
           className="block w-full text-left px-5 py-3 hover:bg-blue-50 border-b border-gray-200 text-gray-700 font-medium"
         >
-          Login / Sign Up
+          {ENABLE_SIGNUP ? "Login / Sign Up" : "Login"}
         </button>
       ) : (
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gray-50">

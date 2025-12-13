@@ -152,12 +152,12 @@ const SecondaryNav: React.FC<Props> = ({
         {/* --- All Offers (Clear Filter) item --- */}
         <div
           onClick={() => handleCuisineClick(null)}
-          className={`flex flex-col items-center w-24 flex-shrink-0 cursor-pointer transition-transform transform-gpu origin-center ${
+          className={`flex flex-col items-center w-18 flex-shrink-0 cursor-pointer transition-transform transform-gpu origin-center ${
             selectedCuisine === null ? "scale-105" : "hover:scale-105"
           }`}
         >
           <div
-            className={`w-16 h-16 flex items-center justify-center rounded-full shadow mb-1 text-base font-bold ${
+            className={`w-14 h-14 flex items-center justify-center rounded-full shadow mb-1 text-base font-bold ${
               selectedCuisine === null
                 ? "bg-orange-500 text-blue ring-4 ring-blue-400"
                 : "bg-orange-100 text-gray-600 hover:bg-orange-100"
@@ -166,7 +166,7 @@ const SecondaryNav: React.FC<Props> = ({
           <img
             src="/images/cuisines/All.jpg"
             alt="All Offers"
-            className={`w-16 h-16 object-contain rounded-full shadow mb-2 `}
+            className={`w-14 h-14 object-contain rounded-full shadow mb-2 `}
           />
           </div>
           <span
@@ -184,14 +184,14 @@ const SecondaryNav: React.FC<Props> = ({
           <div
             key={c.name}
             onClick={() => handleCuisineClick(c.name)}
-            className={`flex flex-col items-center w-24 flex-shrink-0 cursor-pointer transition-transform transform-gpu origin-center ${
+            className={`flex flex-col items-center w-18 flex-shrink-0 cursor-pointer transition-transform transform-gpu origin-center ${
               selectedCuisine === c.name ? "scale-105" : "hover:scale-105"
             }`}
           >
             <img
               src={c.img}
               alt={c.name}
-              className={`w-16 h-16 object-contain rounded-full shadow mb-1 ${
+              className={`w-14 h-14 object-contain rounded-full shadow mb-1 ${
                 selectedCuisine === c.name ? "ring-4 ring-blue-400" : ""
               }`}
             />

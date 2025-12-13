@@ -4,7 +4,7 @@ import Home from "./components/home";
 import AdminImageManager from "./components/AdminImageManager";
 import About from "./components/About";
 import MakeOffer from "./components/MakeOffer";
-import LoginPage from "./components/LoginPage";
+import Favourites from "./components/Favourites";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./ProtectedRoute";
@@ -23,6 +23,7 @@ function App() {
             <Route path="/about" element={<About />} />
             {/*<Route path="/login" element={<LoginPage />} /> */}
             <Route path="/make-offer" element={<ProtectedRoute><MakeOffer /></ProtectedRoute>} />
+            <Route path="/favourites" element={<Favourites />} />
           </Routes>
           {/* Toast container must be here */}
           <ToastContainer

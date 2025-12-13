@@ -76,6 +76,12 @@ export function getFirebaseAuth() {
 }
 
 export async function firebaseSignup(email: string, password: string, displayName: string) {
+  // Check signup feature flag
+  const { ENABLE_SIGNUP } = await import('../config/appConfig');
+  if (!ENABLE_SIGNUP) {
+    throw new Error('Signup is not supported at this time. Please contact support.');
+  }
+  
   if (!auth) throw new Error('Firebase not configured');
   const result = await createUserWithEmailAndPassword(auth, email, password);
   

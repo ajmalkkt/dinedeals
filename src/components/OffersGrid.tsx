@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ZoomInIcon, ZoomOutIcon } from "@radix-ui/react-icons";
 import { Skeleton } from "./ui/skeleton";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Heart } from "lucide-react";
 import { SHOW_OFFER_AVATAR, SHOW_DISCOUNTED_PRICE } from "../config/appConfig";
 
 interface Offer {
@@ -37,6 +37,8 @@ interface OfferCardProps {
   restaurantLogo: string;
   showOfferDetail?: boolean;
   showOfferAvatar?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (offer: Offer) => void;
 }
 
 const handleDirections = (restaurantAddress) => {
@@ -61,6 +63,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
   restaurantLogo,
   showOfferDetail = true,
   showOfferAvatar = true,
+  isFavorite = false,
+  onToggleFavorite,
 }) => {
   const [showModal, setShowModal] = React.useState(false);
   const [zoom, setZoom] = React.useState(1);
@@ -92,6 +96,18 @@ const OfferCard: React.FC<OfferCardProps> = ({
               ? <span className="text-lg font-bold text-white">QR-{offer.discountedPrice}</span>
               : <span className="text-lg font-bold text-white">{((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF</span>}
           </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onToggleFavorite?.(offer);
+            }}
+            className="absolute top-2 left-2 bg-white/80 rounded-full p-2 hover:bg-white transition-colors"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart
+              className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
+            />
+          </button>
           {showOfferAvatar && (
             <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1">
               <img
@@ -195,6 +211,8 @@ interface OffersGridProps {
   restaurants?: Restaurant[];
   isLoading?: boolean;
   showOfferDetail?: boolean;
+  favorites?: number[];
+  onToggleFavorite?: (offer: Offer) => void;
 }
 
 const OffersGrid = ({
@@ -202,6 +220,8 @@ const OffersGrid = ({
   restaurants = [],
   isLoading = false,
   showOfferDetail = true,
+  favorites = [],
+  onToggleFavorite,
 }: OffersGridProps) => {
   // `home.tsx` performs filtering (including multi-select). This component
   // simply renders the offers list it receives to avoid duplicate/conflicting
@@ -273,6 +293,8 @@ const OffersGrid = ({
               restaurantLogo={getRestaurantLogo(offer.restaurantId)}
               showOfferDetail={showOfferDetail}
               showOfferAvatar={SHOW_OFFER_AVATAR}
+              isFavorite={favorites.includes(offer.id)}
+              onToggleFavorite={onToggleFavorite}
             />
           );
         })}

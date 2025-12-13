@@ -3,6 +3,7 @@ import { useAuth } from '../auth/useAuth';
 import { useModal } from '../contexts/ModalContext';
 import { X } from 'lucide-react';
 import { firebaseSignup, firebaseResetPassword } from '../auth/firebaseClient';
+import { ENABLE_SIGNUP } from '../config/appConfig';
 
 type AuthMode = 'LOGIN' | 'SIGNUP' | 'FORGOT_PASSWORD';
 
@@ -37,6 +38,13 @@ export default function LoginModal() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent signup if disabled
+    if (mode === 'SIGNUP' && !ENABLE_SIGNUP) {
+      setError('Signup is not supported at this time. Please contact support.');
+      return;
+    }
+    
     setError(null);
     setMsg(null);
     setLoading(true);
@@ -96,7 +104,7 @@ export default function LoginModal() {
             <img 
               src="/logo.png" 
               alt="Dine Offers" 
-              className="w-10 h-10 rounded-full shadow-sm object-cover border border-gray-200" 
+              className="w-12 h-12 rounded-full shadow-sm object-cover border border-gray-200" 
             />
             
             {/* Dynamic Title */}
@@ -197,7 +205,12 @@ export default function LoginModal() {
           <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-600 space-y-3">
             {mode === 'LOGIN' && (
               <>
-                <p>Don't have an account? <button onClick={() => setMode('SIGNUP')} className="text-blue-600 font-bold hover:underline">Sign up</button></p>
+                {ENABLE_SIGNUP && (
+                  <p>Don't have an account? <button onClick={() => setMode('SIGNUP')} className="text-blue-600 font-bold hover:underline">Sign up</button></p>
+                )}
+                {!ENABLE_SIGNUP && (
+                  <p className="text-gray-500 text-xs italic">Restaurant owner, Don't have an account? Please <a href="#" className="text-blue-600 font-semibold hover:underline">Register your business</a></p>
+                )}
                 <button onClick={() => setMode('FORGOT_PASSWORD')} className="text-gray-500 hover:text-gray-800 text-xs">Forgot Password?</button>
               </>
             )}

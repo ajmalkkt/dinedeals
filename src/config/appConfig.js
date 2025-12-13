@@ -13,6 +13,9 @@
   // Auth provider: KEYCLOAK or FIREBASE
   const AUTH_PROVIDER = (import.meta.env.VITE_AUTH_PROVIDER || "KEYCLOAK").toUpperCase();
 
+  // Feature flags for signup (disabled by default, set VITE_ENABLE_SIGNUP=true to enable)
+  const ENABLE_SIGNUP = import.meta.env.VITE_ENABLE_SIGNUP === "true";
+
   const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || "Qatar";
   const DEFAULT_CATEGORY = import.meta.env.VITE_DEFAULT_CATEGORY || "All Offers";
 
@@ -120,8 +123,6 @@ export default {
   cuisineLists,
 };
 
-export { AUTH_PROVIDER };
-
 export {
   DEFAULT_COUNTRY,
   DEFAULT_CATEGORY,
@@ -138,4 +139,6 @@ export {
   SHOW_CUISINE_NAV,
   SHOW_DISCOUNTED_PRICE,
   LOG_API_RESPONSE,
+  AUTH_PROVIDER,
+  ENABLE_SIGNUP,
 };
