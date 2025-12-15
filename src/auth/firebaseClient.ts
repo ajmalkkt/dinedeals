@@ -10,6 +10,7 @@ import {
   updateProfile,
   User
 } from 'firebase/auth';
+import ENABLE_SIGNUP from '../config/appConfig';
 
 // Minimal firebase client — expects env var prefixed with VITE_FIREBASE_*
 const firebaseConfig = {
@@ -77,7 +78,6 @@ export function getFirebaseAuth() {
 
 export async function firebaseSignup(email: string, password: string, displayName: string) {
   // Check signup feature flag
-  const { ENABLE_SIGNUP } = await import('../config/appConfig');
   if (!ENABLE_SIGNUP) {
     throw new Error('Signup is not supported at this time. Please contact support.');
   }

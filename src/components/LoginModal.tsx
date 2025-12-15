@@ -4,6 +4,7 @@ import { useModal } from '../contexts/ModalContext';
 import { X } from 'lucide-react';
 import { firebaseSignup, firebaseResetPassword } from '../auth/firebaseClient';
 import { ENABLE_SIGNUP } from '../config/appConfig';
+import { createUser } from '../services/useService';
 
 type AuthMode = 'LOGIN' | 'SIGNUP' | 'FORGOT_PASSWORD';
 
@@ -15,7 +16,7 @@ export default function LoginModal() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('public'); 
+  const [role, setRole] = useState('user'); 
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,15 +57,12 @@ export default function LoginModal() {
       } 
       else if (mode === 'SIGNUP') {
         const user = await firebaseSignup(email, password, name);
-        
-        // OPTIONAL: Call your Backend here to set the Role
-        // const token = await user.getIdToken();
-        // await fetch('http://localhost:5000/api/auth/set-role', {
-        //   method: 'POST',
-        //   headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ role })
-        // });
-        
+        // inside your signup flow, after you have a token:
+        const username = email.split('@')[0];// derive username from email
+        //role : restaurant_owner or user
+        const userPayload = { name, username, email, role};
+        const result = await createUser(userPayload);
+        // handle success (result contains backend response)
         setMsg("Account created! You are now logged in.");
         onLoginSuccess();  
       } 
@@ -83,7 +81,7 @@ export default function LoginModal() {
       } else if (message.includes("auth/weak-password")) {
         setError("Password should be at least 6 characters.");
       } else {
-        setError(message);
+        setError(`Unexpected Error: ${message}`);
       }
     } finally {
       setLoading(false);
@@ -184,7 +182,7 @@ export default function LoginModal() {
                     onChange={(e) => setRole(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 bg-white appearance-none focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="public">Foodie (Browse Offers)</option>
+                    <option value="user">Foodie (Browse Offers)</option>
                     <option value="restaurant_owner">Restaurant Owner (Post Offers)</option>
                   </select>
                   {/* Custom arrow if needed, but default works */}

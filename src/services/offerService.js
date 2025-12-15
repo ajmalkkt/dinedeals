@@ -32,22 +32,23 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   } catch (err) {
     // fall through to fallback fetch
   }
-  try {
-    const res = await fetch(fallbackUrl);
-    if (res.ok) {
-      if (LOG_API_RESPONSE && typeof window !== 'undefined') {
-        window.__offerDataSource = 'LOCAL_JSON';
-        console.log('[OfferService] Data fetched from local JSON:', fallbackUrl);
-      }
-      return await res.json();
-    }
-  } catch (err) {
-    // return empty array on failure
-  }
+  // try {
+  //   const res = await fetch(fallbackUrl);
+  //   if (res.ok) {
+  //     if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+  //       window.__offerDataSource = 'LOCAL_JSON';
+  //       console.log('[OfferService] Data fetched from local JSON:', fallbackUrl);
+  //     }
+  //     //return await res.json();
+  //   }
+  // } catch (err) {
+  //   // return empty array on failure
+  // }
   if (LOG_API_RESPONSE && typeof window !== 'undefined') {
     window.__offerDataSource = 'NONE';
     console.log('[OfferService] No offer data found.');
   }
+  console.log('[OfferService] No offer data found.');
   return [];
 }
 

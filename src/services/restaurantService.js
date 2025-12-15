@@ -18,23 +18,24 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   } catch (err) {
     // fall through
   }
-  try {
-    const res = await fetch(fallbackUrl);
-    if (res.ok) {
-      const data = await res.json();
-      if (LOG_API_RESPONSE && typeof window !== 'undefined') {
-        window.__restaurantDataSource = 'LOCAL_JSON';
-        console.log('[RestaurantService] Data fetched from local JSON:', fallbackUrl, data);
-      }
-      return data;
-    }
-  } catch (err) {
-    // fall through
-  }
+  // try {
+  //   const res = await fetch(fallbackUrl);
+  //   if (res.ok) {
+  //     const data = await res.json();
+  //     if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+  //       window.__restaurantDataSource = 'LOCAL_JSON';
+  //       console.log('[RestaurantService] Data fetched from local JSON:', fallbackUrl, data);
+  //     }
+  //     //return data;
+  //   }
+  // } catch (err) {
+  //   // fall through
+  // }
   if (LOG_API_RESPONSE && typeof window !== 'undefined') {
     window.__restaurantDataSource = 'NONE';
     console.log('[RestaurantService] No restaurant data found.');
   }
+  console.log('[RestaurantService] No restaurant data found.');
   return [];
 }
 
