@@ -146,7 +146,7 @@ export default function AdminPanel() {
       if (offerInputRef.current) offerInputRef.current.value = "";
     } catch (err) {
       console.error(err);
-      alert("Error uploading offer");
+      alert("Error uploading offer: " + err.message);
     }
   };
 

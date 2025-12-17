@@ -32,18 +32,7 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   } catch (err) {
     // fall through to fallback fetch
   }
-  // try {
-  //   const res = await fetch(fallbackUrl);
-  //   if (res.ok) {
-  //     if (LOG_API_RESPONSE && typeof window !== 'undefined') {
-  //       window.__offerDataSource = 'LOCAL_JSON';
-  //       console.log('[OfferService] Data fetched from local JSON:', fallbackUrl);
-  //     }
-  //     //return await res.json();
-  //   }
-  // } catch (err) {
-  //   // return empty array on failure
-  // }
+  
   if (LOG_API_RESPONSE && typeof window !== 'undefined') {
     window.__offerDataSource = 'NONE';
     console.log('[OfferService] No offer data found.');
@@ -96,7 +85,13 @@ export async function uploadOffer(formData, options = {}) {
       // If sending FormData, do NOT set Content-Type manually.
       },
     });
-    if (!res.ok) throw new Error('Failed to upload offer');
+    if (!res.ok) {
+      //extract the message field from response json
+      const errorData = await res.json();
+      const errorMessage = errorData.message || 'Failed to upload offer';
+      //console.error('[OfferService] uploadOffer error details:', errorData);
+      throw new Error(errorMessage);
+    }
     return await res.json();
   } catch (err) {
     console.error('[OfferService] uploadOffer error:', err);
@@ -159,7 +154,13 @@ export async function activateOffers(payload) {
     headers: { "Content-Type": "application/json","x-api-token": payload.apiKey,"Authorization": `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Failed to activate offers");
+  if (!res.ok) { 
+    //extract the message field from response json
+    const errorData = await res.json();
+    const errorMessage = errorData.message || 'Failed to activate offers';
+    //console.error('[OfferService] activateOffers error details:', errorData);
+    throw new Error(errorMessage);
+  }
   return res.json();
 }
 

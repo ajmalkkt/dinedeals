@@ -65,7 +65,7 @@ export default function MakeOfferOnline() {
       fetchInactiveOffers();
     } catch (err) {
       console.error("Error activating offers:", err);
-      toast.error("Failed to activate offers");
+      toast.error("Failed to activate offers: " + err.message);
     } finally {
       setLoading(false);
     }
