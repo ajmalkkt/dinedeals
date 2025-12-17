@@ -5,6 +5,21 @@ import { LOG_API_RESPONSE } from '../config/appConfig';
 import { getAuthToken } from '../auth/firebaseClient'; 
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
+  // Prevent continuous retries when the backend returns no data/errors.
+  // Simple per-URL in-memory attempt counter + cooldown.
+  const MAX_ATTEMPTS = 100; // stop after this many consecutive failures
+  const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes cooldown
+  if (!globalThis.__restaurantFetchState) globalThis.__restaurantFetchState = {};
+  const state = globalThis.__restaurantFetchState[url] || { attempts: 0, lastAttempt: 0 };
+  const now = Date.now();
+  // If exceeded attempts and still in cooldown window, skip network call
+  if (state.attempts >= MAX_ATTEMPTS && now - state.lastAttempt < COOLDOWN_MS) {
+    if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+      console.log('[RestaurantService] Skipping fetch (cooldown):', url, state);
+    }
+    return [];
+  }
+
   try {
     const res = await fetch(url);
     if (res.ok) {
@@ -13,35 +28,44 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
         window.__restaurantDataSource = 'API';
         console.log('[RestaurantService] Data fetched from API:', url, data);
       }
+      // success => reset state
+      globalThis.__restaurantFetchState[url] = { attempts: 0, lastAttempt: Date.now() };
       return data;
     }
   } catch (err) {
     // fall through
   }
-  // try {
-  //   const res = await fetch(fallbackUrl);
-  //   if (res.ok) {
-  //     const data = await res.json();
-  //     if (LOG_API_RESPONSE && typeof window !== 'undefined') {
-  //       window.__restaurantDataSource = 'LOCAL_JSON';
-  //       console.log('[RestaurantService] Data fetched from local JSON:', fallbackUrl, data);
-  //     }
-  //     //return data;
-  //   }
-  // } catch (err) {
-  //   // fall through
-  // }
+ 
+  // mark failed attempt
+  state.attempts = (state.attempts || 0) + 1;
+  state.lastAttempt = Date.now();
+  globalThis.__restaurantFetchState[url] = state;
   if (LOG_API_RESPONSE && typeof window !== 'undefined') {
     window.__restaurantDataSource = 'NONE';
-    console.log('[RestaurantService] No restaurant data found.');
+    console.log('[RestaurantService] No restaurant data found.', state);
   }
-  console.log('[RestaurantService] No restaurant data found.');
+  console.log('[RestaurantService] No restaurant data found. Attempt:', state.attempts);
   return [];
 }
 
 async function loadRestaurants() {
-  // Use public/data/restaurants.json as fallback for production
-  return await fetchJsonWithFallback(RESTAURANTS_URL, '/data/restaurants.json');
+  // Simple in-memory cache to prevent multiple components from triggering
+  // repeated network requests. TTL of 5 minutes.
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  if (!globalThis.__restaurantCache) globalThis.__restaurantCache = { data: null, ts: 0 };
+  const cache = globalThis.__restaurantCache;
+  const now = Date.now();
+  if (cache.data && now - cache.ts < CACHE_TTL_MS) {
+    if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+      console.log('[RestaurantService] Returning cached restaurants');
+    }
+    return cache.data;
+  }
+  // Fetch fresh data and populate cache
+  const data = await fetchJsonWithFallback(RESTAURANTS_URL, '/data/restaurants.json');
+  cache.data = data;
+  cache.ts = Date.now();
+  return data;
 }
 
 export async function getAllRestaurants() {
