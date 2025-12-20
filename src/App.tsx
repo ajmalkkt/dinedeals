@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginModal from "./components/LoginModal";
+import ManageOffers from "./components/ManageOffers";
             
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
             {/*<Route path="/login" element={<LoginPage />} /> */}
             <Route path="/make-offer" element={<ProtectedRoute><MakeOffer /></ProtectedRoute>} />
             <Route path="/favourites" element={<Favourites />} />
+            <Route path="/manage-offers" element={<ProtectedRoute><ManageOffers /></ProtectedRoute>} />
           </Routes>
           {/* Toast container must be here */}
           <ToastContainer

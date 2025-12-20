@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   getAllRestaurants,
   uploadRestaurant,
@@ -11,10 +11,13 @@ import {
   uploadOffer,
   deleteOffer,
 } from "../services/offerService";
+// Auth Hook
+import useAuth from "../auth/useAuth";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
   const offerInputRef = useRef(null);
+  const { user, initialized } = useAuth();
 
   // ===== States =====
   const [restaurants, setRestaurants] = useState([]);
@@ -22,6 +25,9 @@ export default function AdminPanel() {
   const [offers, setOffers] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
   const [brandPreview, setBrandPreview] = useState(null);
+
+  // Add this near your other useState definitions
+  const [isUploading, setIsUploading] = useState(false);
 
   const [mode, setMode] = useState("manual"); // 'manual' or 'bulk'
   const [apiKey, setApiKey] = useState("");
@@ -96,6 +102,7 @@ export default function AdminPanel() {
       if (val) formData.append(key, val);
     });
 
+    setIsUploading(true); // <--- START LOADING
     try {
       await uploadRestaurant(formData, { headers: getAuthHeaders() });
       alert("Restaurant saved successfully!");
@@ -113,6 +120,8 @@ export default function AdminPanel() {
     } catch (err) {
       console.error(err);
       alert("Error saving restaurant");
+    } finally {
+      setIsUploading(false); // <--- STOP LOADING
     }
   };
 
@@ -137,7 +146,7 @@ export default function AdminPanel() {
     Object.entries(offerForm).forEach(([key, val]) => {
       if (val) formData.append(key, val);
     });
-
+    setIsUploading(true); // <--- START LOADING
     try {
       await uploadOffer(formData, { headers: getAuthHeaders() });
       alert("Offer uploaded successfully!");
@@ -147,6 +156,8 @@ export default function AdminPanel() {
     } catch (err) {
       console.error(err);
       alert("Error uploading offer: " + err.message);
+    } finally {
+      setIsUploading(false); // <--- STOP LOADING
     }
   };
 
@@ -164,12 +175,15 @@ export default function AdminPanel() {
 
   const handleBulkProcessing = async () => {
     if (!apiKey) return alert("Please enter Your Key for bulk processing.");
+    setIsUploading(true); // <--- START LOADING
     try {
       await uploadBulkData({ headers: getAuthHeaders() });
       alert("Bulk processing completed!");
     } catch (err) {
       console.error(err);
       alert("Error in bulk processing");
+    } finally {
+      setIsUploading(false); // <--- STOP LOADING
     }
   };
 
@@ -189,9 +203,10 @@ export default function AdminPanel() {
         <label className="flex items-center gap-1">
           <input type="radio" name="mode" value="manual" checked={mode === "manual"} onChange={() => setMode("manual")} /> Manual Entry
         </label>
-        <label className="flex items-center gap-1">
-          <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Loading
-        </label>
+        { user?.role === "admin" && (<label className="flex items-center gap-1">
+            <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Loading
+          </label> 
+        )}
         <input type="text" placeholder="Your Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="border p-1 rounded ml-4 flex-1" />
       </div>
 
@@ -386,6 +401,16 @@ export default function AdminPanel() {
           </div>
         </div>
       </footer>
+      {/* ===== FULL SCREEN SPINNER OVERLAY ===== */}
+      {isUploading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200">
+            <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-3" />
+            <h3 className="text-lg font-bold text-gray-800">Processing...</h3>
+            <p className="text-sm text-gray-500">Please wait while we upload your data.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

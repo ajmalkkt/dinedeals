@@ -58,6 +58,16 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
     }
   };
 
+  // Inside your component
+  const onManageOffersClick = () => {
+    // Mobile (< 768px) goes to simple form, others go to Admin Dashboard
+    if (window.innerWidth < 768) {
+      handleProtectedNavigation("/admin");
+    } else {
+      handleProtectedNavigation("/manage-offers");
+    }
+  };
+
   return (
     <div
       className="absolute right-0 top-10 w-72 bg-white rounded-xl shadow-lg border border-gray-200 z-30 overflow-hidden"
@@ -91,21 +101,23 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
         Register Your Business
       </button>
 
-      {/* --- Admin (Add Offers) --- */}
+      {/* --- Manage offers (Add Offers) --- */}
       <button
-        onClick={() => handleProtectedNavigation("/admin")}
+        onClick={onManageOffersClick}
         className="block w-full text-left px-5 py-3 hover:bg-blue-50 border-b border-gray-200 text-gray-700 font-medium"
       >
-        Add Your Offers
+        Manage Offers
       </button>
 
       {/* --- Make Offer --- */}
+      {auth.user && auth.user.role === "admin" && (
       <button
         onClick={() => handleProtectedNavigation("/make-offer")}
         className="block w-full text-left px-5 py-3 hover:bg-blue-50 border-b border-gray-200 text-gray-700 font-medium"
       >
-        Make Your Offer Online
+        Approve Offers
       </button>
+      )}
 
       {/* --- Contact Us --- */}
       <button

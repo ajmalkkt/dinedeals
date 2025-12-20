@@ -112,7 +112,11 @@ export async function deleteOffer(id, options = {}) {
       // If sending FormData, do NOT set Content-Type manually.
       },
     });
-    if (!res.ok) throw new Error('Failed to delete offer');
+    if (!res.ok) {
+      const errorData = await res.json();
+      const errorMessage = errorData.message || 'Failed to delete offer';
+      throw new Error(errorMessage);
+    }
     return await res.json();
   } catch (err) {
     console.error('[OfferService] deleteOffer error:', err);
