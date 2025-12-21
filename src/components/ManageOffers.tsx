@@ -18,6 +18,8 @@ import {
   Paperclip,
   ArrowLeft,
   Loader2,
+  EyeOff, // Added icon for Inactive Offers
+  AlertCircle // Added icon for status
 } from "lucide-react";
 
 // Mock Services (Keep your existing imports here)
@@ -30,6 +32,7 @@ import {
   getOffersByRestaurantId,
   uploadOffer,
   deleteOffer,
+  getInactiveOffers, // Imported as requested
 } from "../services/offerService";
 
 // Auth Hook
@@ -65,6 +68,7 @@ export default function ManageOffers() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [offers, setOffers] = useState([]);
+  const [inactiveOffers, setInactiveOffers] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
   const [brandPreview, setBrandPreview] = useState(null);
   const [apiKey, setApiKey] = useState("");
@@ -126,6 +130,20 @@ export default function ManageOffers() {
   useEffect(() => {
     getAllRestaurants().then(setRestaurants).catch(console.error);
   }, []);
+
+  // Fetch inactive offers when tab is switched
+  useEffect(() => {
+    if (activeTab === "inactive") {
+      // Assuming getInactiveOffers doesn't require args, or we pass headers if needed
+      // If it requires auth, we might need to pass { headers: getAuthHeaders() }
+      getInactiveOffers()
+        .then((data) => setInactiveOffers(data || []))
+        .catch((err) => {
+            console.error("Failed to fetch inactive offers", err);
+            setInactiveOffers([]);
+        });
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     // When switching to offers tab, if no restaurant selected, select first one
@@ -239,6 +257,16 @@ export default function ManageOffers() {
     }
   };
 
+  // Format dates for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   // ===== Render Helpers =====
   const renderSidebarItem = (id, icon, label) => (
     <button
@@ -267,6 +295,8 @@ export default function ManageOffers() {
           {renderSidebarItem("dashboard", <LayoutDashboard size={20} />, "Dashboard")}
           {renderSidebarItem("restaurants", <Store size={20} />, "Restaurants")}
           {renderSidebarItem("offers", <Tag size={20} />, "Offers")}
+          {/* New Inactive Offers Menu Item */}
+          {renderSidebarItem("inactive", <EyeOff size={20} />, "Inactive Offers")}
           {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
         </nav>
 
@@ -287,7 +317,7 @@ export default function ManageOffers() {
             <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-600">
               <Menu size={20} />
             </button>
-            <h2 className="text-lg font-semibold text-gray-700 capitalize">{activeTab}</h2>
+            <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab === "inactive" ? "Inactive Offers" : activeTab}</h2>
           </div>
 
           <div className="flex items-center gap-6">
@@ -339,11 +369,12 @@ export default function ManageOffers() {
                       <h3 className="text-2xl font-bold text-gray-800">{offers.length > 0 ? offers.length : 0}</h3>
                     </div>
                  </div>
+                 
                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><User size={24} /></div>
+                    <div className="p-3 bg-purple-100 text-orange-600 rounded-lg"><EyeOff size={24} /></div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Session</p>
-                      <h3 className="text-lg font-bold text-gray-800">{apiKey ? "Active" : "No Key"}</h3>
+                      <p className="text-sm text-gray-500 font-medium">Inactive Offers</p>
+                      <h3 className="text-lg font-bold text-gray-800">{inactiveOffers.length? inactiveOffers.length : "-"}</h3>
                     </div>
                  </div>
                </div>
@@ -389,7 +420,7 @@ export default function ManageOffers() {
                     </div>
                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
-                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Doha, West Bay" required />
+                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Doha, West Bay" required />
                     </div>
                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Phone</label>
@@ -397,12 +428,7 @@ export default function ManageOffers() {
                     </div>
                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
-                       <select name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
-                         <option value="">Select Cuisine</option>
-                         {cuisineLists.map((c) => (
-                           <option key={c.name} value={c.name}>{c.name}</option>
-                         ))}
-                       </select>
+                       <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Indian, Arabic,..." />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
@@ -422,7 +448,7 @@ export default function ManageOffers() {
                     {/* File Inputs Styled */}
                     <div className="space-y-1">
                        <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                         <Paperclip size={14} /> Logo *
+                         <Paperclip size={14} /> Logo Image *
                        </label>
                        <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
                        {logoPreview && <img src={logoPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
@@ -538,7 +564,7 @@ export default function ManageOffers() {
                        <div className="space-y-1">
                           <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
                              <Paperclip size={14} />
-                             Offer *
+                             Offer Image *
                           </label>
                           <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" required/>
                           {offerPreview && <img src={offerPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
@@ -603,6 +629,61 @@ export default function ManageOffers() {
             </div>
           )}
 
+          {/* --- INACTIVE OFFERS TAB (New) --- */}
+          {activeTab === "inactive" && (
+            <div className="space-y-4 md:space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <EyeOff size={24} className="text-orange-500" />
+                    Inactive / Under Review
+                  </h3>
+                </div>
+
+                {inactiveOffers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                    <AlertCircle size={48} className="mb-4 opacity-30" />
+                    <p className="text-sm font-medium">No inactive offers found.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {inactiveOffers.map((o, idx) => (
+                      <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
+                        {/* Placeholder Image Area */}
+                        {user?.role === "admin" ? (
+                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                            <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                            <div className="bg-orange-100 text-orange-600 p-3 rounded-full mb-2">
+                              <AlertCircle size={24}  />
+                              </div>
+                              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
+                            </div>
+                        )}
+                        <div className="p-4 flex-1 flex flex-col">
+                          <div className="flex justify-between items-start mb-1">
+                              <h5 className="font-bold text-gray-800 line-clamp-1 flex-1 pr-2">{o.title}</h5>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">{o.cuisine || o.category || "General"}</span>
+                          </div>
+                          
+                          <div className="mt-3 space-y-2 text-xs text-gray-500 border-t border-gray-100 pt-3">
+                              <div className="flex justify-between">
+                                <span>Valid From:</span>
+                                <span className="font-medium text-gray-700">{formatDate(o.validFrom)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Valid To:</span>
+                                <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
+                              </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+          )}
           {/* --- BULK TAB --- */}
           {activeTab === "bulk" && (
             <div className="max-w-xl mx-auto mt-10">
@@ -623,12 +704,12 @@ export default function ManageOffers() {
 
         {/* ===== Footer ===== */}
         <footer className="bg-white border-t border-gray-200 py-4 px-6">
-           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-              <p>© 2025 Restaurant Offers Platform. All rights reserved.</p>
+           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
+              <p>© 2025 BrowseQatar Offers Platform. All rights reserved.</p>
               <div className="flex items-center gap-2">
                 <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
                 <span>Powered by</span>
-                <span className="font-bold text-slate-700">MerakiAi</span>
+                <span className="font-medium text-slate-700">MerakiAi</span>
               </div>
            </div>
         </footer>
