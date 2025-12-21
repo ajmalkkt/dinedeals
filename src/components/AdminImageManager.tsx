@@ -401,7 +401,7 @@ export default function ManageOffers() {
                  {[
                    { icon: <Store size={24} />, color: "text-blue-600", bg: "bg-blue-100", label: "Restaurants", val: getFilteredRestaurants(restaurants).length },
                    { icon: <Tag size={24} />, color: "text-green-600", bg: "bg-green-100", label: "Offers", val: offers.length },
-                   { icon: <EyeOff size={24} />, color: "text-orange-600", bg: "bg-orange-100", label: "Inactive", val: inactiveOffers.length || "-" }
+                   { icon: <EyeOff size={24} />, color: "text-orange-600", bg: "bg-orange-100", label: "Inactive", val: getFilteredOffers(inactiveOffers).length || "-" }
                  ].map((stat, idx) => (
                    <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
                       <div className={`p-3 ${stat.bg} ${stat.color} rounded-lg`}>{stat.icon}</div>
@@ -654,7 +654,7 @@ export default function ManageOffers() {
                  </div>
                ) : (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                   {inactiveOffers.map((o, idx) => (
+                   {getFilteredOffers(inactiveOffers).map((o, idx) => (
                      <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
                         {/* Placeholder Image Area */}
                         {user?.role === "admin" ? (
