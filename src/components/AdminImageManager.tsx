@@ -1,6 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Store,
+  Tag,
+  UploadCloud,
+  LogOut,
+  Plus,
+  Trash2,
+  Search,
+  User,
+  Menu,
+  X,
+  ChevronRight,
+  Save,
+  Image as ImageIcon,
+  Paperclip,
+  ArrowLeft,
+  Loader2,
+  Key
+} from "lucide-react";
+
+// Mock Services (Keep your existing imports here)
 import {
   getAllRestaurants,
   uploadRestaurant,
@@ -11,63 +32,104 @@ import {
   uploadOffer,
   deleteOffer,
 } from "../services/offerService";
+
 // Auth Hook
 import useAuth from "../auth/useAuth";
+// import { getAuthToken } from '../auth/firebaseClient'; // Uncomment if needed
 
-export default function AdminPanel() {
+// App Config
+import { cuisineLists, countryMap } from "../config/appConfig";
+
+export default function ManageOffers() {
   const navigate = useNavigate();
   const offerInputRef = useRef(null);
   const { user, initialized } = useAuth();
 
-  // ===== States =====
+  // Fallback user display
+  const displayUser = user ? {
+    name: user.displayName || user.email || "User",
+    email: user.email || "",
+    role: user.role || "user"
+  } : {
+    name: "Guest",
+    email: "",
+    role: "user"
+  };
+
+  // ===== Navigation State =====
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Desktop state
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile state
+  const [showAddRestaurantForm, setShowAddRestaurantForm] = useState(false);
+  const [showAddOfferForm, setShowAddOfferForm] = useState(false);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false); // Mobile toggle for API key
+
+  // ===== Data States =====
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [offers, setOffers] = useState([]);
   const [logoPreview, setLogoPreview] = useState(null);
   const [brandPreview, setBrandPreview] = useState(null);
-
-  // Add this near your other useState definitions
+  const [apiKey, setApiKey] = useState("");
+  const [offerPreview, setOfferPreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [mode, setMode] = useState("manual"); // 'manual' or 'bulk'
-  const [apiKey, setApiKey] = useState("");
+  // ===== Forms =====
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
 
   const [form, setForm] = useState({
-    id: "",
-    name: "",
-    address: "",
-    phone: "",
-    rating: "",
-    cuisine: "",
-    logo: null,
-    brand: null,
-    country: "Qatar",
+    id: "", name: "", address: "", phone: "", rating: "", cuisine: "",
+    logo: null, brand: null, country: "Qatar",
   });
 
   const [offerForm, setOfferForm] = useState({
-    title: "",
-    description: "",
-    cuisine: "",
-    originalPrice: "",
-    discountedPrice: "",
-    offerType: "",
-    validFrom: "",
-    validTo: "",
-    location: "",
-    country: "Qatar",
-    category: "",
-    image: null,
+    title: "", description: "", cuisine: "", originalPrice: "", discountedPrice: "",
+    offerType: "Discount", validFrom: getTodayDate(), validTo: getTomorrowDate(), location: "", country: "Qatar",
+    category: "", image: null,
   });
 
   // ===== Helpers =====
-  const getAuthHeaders = () => ({
-    "x-api-token": apiKey || "",
-  });
+  const getAuthHeaders = () => ({ "x-api-token": apiKey || "" });
 
-  // ===== Fetch initial data =====
+  const getFilteredRestaurants = (allRestaurants) => {
+    if (!user) return [];
+    if (user.role === "admin") return allRestaurants;
+    return allRestaurants.filter((r) => r.ownerLogin === user.email);
+  };
+
+  const getFilteredOffers = (allOffers) => {
+    if (!user) return [];
+    if (user.role === "admin") return allOffers;
+    return allOffers.filter((o) => o.ownerLogin === user.email);
+  };
+
+  // ===== Effects =====
   useEffect(() => {
     getAllRestaurants().then(setRestaurants).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'offers' && !selectedRestaurant && restaurants.length > 0) {
+      // Don't auto-select on mobile to keep view clean, only on desktop if needed
+      // Keeping logic but making it safe
+      // handleSelectRestaurant({ target: { value: restaurants[0].id } });
+    }
+  }, [activeTab, restaurants]);
+
+  // Handle mobile menu close on tab change
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setMobileMenuOpen(false);
+  };
 
   // ===== Handlers =====
   const handleFormChange = (e) => {
@@ -85,6 +147,7 @@ export default function AdminPanel() {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
       setOfferForm((prev) => ({ ...prev, image: files[0] }));
+      if (name === "offerImg") setOfferPreview(URL.createObjectURL(files[0]));
     } else {
       setOfferForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -92,37 +155,23 @@ export default function AdminPanel() {
 
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter Your Key to proceed. As part of registration, you would have received a key via email.");
-    if (!form.name || !form.address || !form.logo || !form.country) {
-      return alert("Please fill in all required fields (Name, Address, Country, Logo).");
-    }
+    if (!apiKey) return alert("Please enter your API Key.");
+    if (!form.name || !form.address || !form.logo || !form.country) return alert("Missing required fields.");
 
     const formData = new FormData();
-    Object.entries(form).forEach(([key, val]) => {
-      if (val) formData.append(key, val);
-    });
+    Object.entries(form).forEach(([key, val]) => { if (val) formData.append(key, val); });
 
-    setIsUploading(true); // <--- START LOADING
+    setIsUploading(true);
     try {
       await uploadRestaurant(formData, { headers: getAuthHeaders() });
-      alert("Restaurant saved successfully!");
+      alert("Restaurant saved!");
       setRestaurants(await getAllRestaurants());
       setForm({ id: "", name: "", address: "", phone: "", rating: "", cuisine: "", logo: null, brand: null, country: "Qatar" });
       setLogoPreview(null);
       setBrandPreview(null);
-      if (offerInputRef.current) offerInputRef.current.value = "";
-      document.querySelectorAll('input[type="file"]').forEach((input) => {
-        if (input instanceof HTMLInputElement) {
-          input.value = "";
-        }
-      });
-
-    } catch (err) {
-      console.error(err);
-      alert("Error saving restaurant");
-    } finally {
-      setIsUploading(false); // <--- STOP LOADING
-    }
+      setShowAddRestaurantForm(false);
+    } catch (err) { console.error(err); alert("Error saving restaurant"); }
+    finally { setIsUploading(false); }
   };
 
   const handleSelectRestaurant = async (e) => {
@@ -138,280 +187,480 @@ export default function AdminPanel() {
 
   const handleOfferUpload = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter Your Key to proceed.");
+    if (!apiKey) return alert("Please enter your API Key.");
     if (!selectedRestaurant) return alert("Select a restaurant first.");
 
     const formData = new FormData();
     formData.append("restaurantId", selectedRestaurant);
-    Object.entries(offerForm).forEach(([key, val]) => {
-      if (val) formData.append(key, val);
-    });
-    setIsUploading(true); // <--- START LOADING
+    
+    const offerData = { ...offerForm, cuisine: offerForm.category };
+    Object.entries(offerData).forEach(([key, val]) => { if (val) formData.append(key, val); });
+
+    setIsUploading(true);
     try {
       await uploadOffer(formData, { headers: getAuthHeaders() });
-      alert("Offer uploaded successfully!");
+      alert("Offer uploaded!");
       setOffers(await getOffersByRestaurantId(selectedRestaurant));
-      setOfferForm({ title: "", description: "", cuisine: "", originalPrice: "", discountedPrice: "", offerType: "", validFrom: "", validTo: "", location: "", country: "Qatar", category: "", image: null });
+      setOfferForm({ title: "", description: "", cuisine: "", originalPrice: "", discountedPrice: "", offerType: "Discount", validFrom: getTodayDate(), validTo: getTomorrowDate(), location: "", country: "Qatar", category: "", image: null });
       if (offerInputRef.current) offerInputRef.current.value = "";
-    } catch (err) {
-      console.error(err);
-      alert("Error uploading offer: " + err.message);
-    } finally {
-      setIsUploading(false); // <--- STOP LOADING
-    }
+      setShowAddOfferForm(false);
+      setOfferPreview(null);
+    } catch (err) { console.error(err); alert("Error uploading offer: " + err.message); }
+    finally { setIsUploading(false); }
   };
 
   const handleDeleteOffer = async (id) => {
-    if (!apiKey) return alert("Please enter Your Key to proceed.");
+    if (!apiKey) return alert("Please enter your Key.");
+    if(!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
-      alert("Offer deleted.");
       setOffers(await getOffersByRestaurantId(selectedRestaurant));
-    } catch (err) {
-      console.error(err);
-      alert("Error deleting offer");
-    }
+    } catch (err) { console.error(err); alert("Error deleting offer:" + err.message); }
   };
 
   const handleBulkProcessing = async () => {
-    if (!apiKey) return alert("Please enter Your Key for bulk processing.");
-    setIsUploading(true); // <--- START LOADING
+    if (!apiKey) return alert("Please enter your Key.");
+    setIsUploading(true);
     try {
       await uploadBulkData({ headers: getAuthHeaders() });
       alert("Bulk processing completed!");
-    } catch (err) {
-      console.error(err);
-      alert("Error in bulk processing");
-    } finally {
-      setIsUploading(false); // <--- STOP LOADING
-    }
+    } catch (err) { console.error(err); alert("Error in bulk processing"); }
+    finally { setIsUploading(false); }
   };
 
-  // ===== JSX =====
+  // ===== Render Helpers =====
+  const renderSidebarItem = (id, icon, label) => (
+    <button
+      onClick={() => handleTabChange(id)}
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+        activeTab === id
+          ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+          : "text-gray-600 hover:bg-gray-50"
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-8">
-      {/* ===== Header ===== */}
-      <div className="flex items-center justify-between mb-2">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
-          <ArrowLeft size={20} /> <span className="font-semibold">Back to Home</span>
-        </button>
-        <h1 className="text-2xl font-bold text-gray-700">Admin Panel</h1>
-      </div>
-
-      {/* ===== Mode Selection & API Key ===== */}
-      <div className="flex items-center gap-4 mb-4">
-        <label className="flex items-center gap-1">
-          <input type="radio" name="mode" value="manual" checked={mode === "manual"} onChange={() => setMode("manual")} /> Manual Entry
-        </label>
-        { user?.role === "admin" && (<label className="flex items-center gap-1">
-            <input type="radio" name="mode" value="bulk" checked={mode === "bulk"} onChange={() => setMode("bulk")} /> Bulk Loading
-          </label> 
-        )}
-        <input type="text" placeholder="Your Key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="border p-1 rounded ml-4 flex-1" />
-      </div>
-
-      {/* ===== Manual Mode Sections ===== */}
-      {mode === "manual" && (
-        <>
-        {/* ===== Restaurant Setup Section ===== */}
-        <section className="border rounded p-4 shadow">
-          <h2 className="text-lg font-bold mb-4">Restaurant Setup</h2>
-          <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Name */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Name *</label>
-              <input name="name" value={form.name} onChange={handleFormChange} className="border p-1 rounded" required />
-            </div>
-
-            {/* Address */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Address *</label>
-              <input name="address" value={form.address} onChange={handleFormChange} className="border p-1 rounded" required />
-            </div>
-
-            {/* Phone */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Phone</label>
-              <input name="phone" value={form.phone} onChange={handleFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Rating */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Rating</label>
-              <input name="rating" value={form.rating} onChange={handleFormChange} type="number" step="0.1" className="border p-1 rounded" />
-            </div>
-
-            {/* Cuisine */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Cuisine (comma-separated)</label>
-              <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Country */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Country</label>
-              <input name="country" value={form.country} onChange={handleFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Logo */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Logo Image *</label>
-              <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="border p-1 rounded" required />
-              {logoPreview && <img src={logoPreview} alt="Logo Preview" className="w-20 h-20 object-cover mt-2 border rounded" />}
-            </div>
-
-            {/* Brand */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Brand Image</label>
-              <input name="brand" type="file" accept="image/*" onChange={handleFormChange} className="border p-1 rounded" />
-              {brandPreview && <img src={brandPreview} alt="Brand Preview" className="w-20 h-20 object-cover mt-2 border rounded" />}
-            </div>
-
-            {/* Manual submit button only */}
-            <div className="col-span-full mt-3">
-              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Restaurant</button>
-            </div>
-          </form>
-        </section>
-
-        {/* ===== Offer Management Section ===== */}
-        <section className="border rounded p-4 shadow">
-          <h2 className="text-lg font-bold mb-4">Manage Offers</h2>
-
-          {/* Restaurant select */}
-          <label className="block text-sm font-semibold mb-1">Select Restaurant</label>
-          <select value={selectedRestaurant} onChange={handleSelectRestaurant} className="border p-1 rounded w-full mb-4">
-            <option value="">Select</option>
-            {restaurants.map((r) => <option key={r.id} value={r.id}>{r.id} - {r.name}</option>)}
-          </select>
-
-          {/* Offer form */}
-          <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-            {/* Title */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Title</label>
-              <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Cuisine */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Cuisine</label>
-              <input name="cuisine" value={offerForm.cuisine} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Original Price */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Original Price</label>
-              <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Discounted Price */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Discounted Price</label>
-              <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Offer Type */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Offer Type</label>
-              <input name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Valid From */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Valid From</label>
-              <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Valid To */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Valid To</label>
-              <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Location */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Location</label>
-              <input name="location" value={offerForm.location} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Category */}
-            <div className="flex flex-col">
-              <label className="text-sm font-semibold">Category</label>
-              <input name="category" value={offerForm.category} onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col col-span-full">
-              <label className="text-sm font-semibold">Description</label>
-              <textarea name="description" value={offerForm.description} onChange={handleOfferFormChange} rows={2} className="border p-1 rounded w-full" />
-            </div>
-
-            {/* Offer Image */}
-            <div className="flex flex-col col-span-full">
-              <label className="text-sm font-semibold">Offer Image</label>
-              <input type="file" ref={offerInputRef} name="image" onChange={handleOfferFormChange} className="border p-1 rounded" />
-            </div>
-
-            {/* Manual submit button only */}
-            <div className="col-span-full">
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Upload Offer</button>
-            </div>
-          </form>
-
-          {/* Display existing offers */}
-          <div className="flex flex-wrap gap-3">
-            {offers.map((o) => (
-              <div key={o.id} className="border p-2 rounded relative w-28 md:w-32">
-                <img src={o.imageUrl} alt={o.title} className="w-full h-20 object-cover rounded" />
-                <p className="text-xs mt-1 truncate">{o.title}</p>
-                <button onClick={() => handleDeleteOffer(o.id)} className="absolute top-1 right-1 bg-red-600 text-white rounded px-1 text-xs">×</button>
-              </div>
-            ))}
-          </div>
-          <div><button
-            type="button"
-            onClick={() => navigate("/")}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition"
-            >
-            ← Back to Home
-            </button>
-          </div>
-        </section>
-        </>
-      )}    
-      {/* ===== Bulk Processing Section ===== */}
-      {mode === "bulk" && (
-        <section className="border rounded p-4 shadow">
-          <h2 className="text-lg font-bold mb-4">Bulk Loading</h2>
-          <button onClick={handleBulkProcessing} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-            Start Bulk Loading
-          </button>
-        </section>
+    <div className="flex h-screen bg-gray-50 font-sans text-slate-800 overflow-hidden">
+      
+      {/* ===== Mobile Sidebar Overlay ===== */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
-      <footer className="bg-muted py-6 px-4 mt-8">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <div className="flex items-center justify-center gap-3">
-            <p className="m-0">© 2025 Restaurant Offers Platform. All rights reserved.</p>
-            <span className="text-muted-foreground">|</span>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <img src={'/meraki.webp'} alt="Meraki AI" className="w-6 h-6 object-contain" />
-              <span>Powered by MerakiAi</span>
+
+      {/* ===== Sidebar ===== */}
+      <aside 
+        className={`
+          fixed md:relative inset-y-0 left-0 z-50 bg-white border-r border-gray-200 
+          transition-all duration-300 flex flex-col
+          ${isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}
+          md:translate-x-0 ${isSidebarOpen ? "md:w-64" : "md:w-20"}
+        `}
+      >
+        <div className="h-16 flex items-center justify-between px-4 md:justify-center border-b border-gray-200">
+           {isSidebarOpen || isMobileMenuOpen ? (
+             <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span>
+           ) : (
+             <span className="text-xl font-bold text-blue-600">M</span>
+           )}
+           {/* Close button for mobile */}
+           <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-500">
+             <X size={24} />
+           </button>
+        </div>
+        
+        <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
+          {renderSidebarItem("dashboard", <LayoutDashboard size={20} />, "Dashboard")}
+          {renderSidebarItem("restaurants", <Store size={20} />, "Restaurants")}
+          {renderSidebarItem("offers", <Tag size={20} />, "Offers")}
+          {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
+        </nav>
+
+        <div className="p-4 border-t border-gray-200">
+          <button onClick={() => navigate("/")} className="flex items-center gap-3 text-gray-500 hover:text-red-600 transition-colors w-full p-2 rounded-md hover:bg-red-50">
+            <LogOut size={20} />
+            {(isSidebarOpen || isMobileMenuOpen) && <span className="text-sm font-medium">Exit Admin</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* ===== Main Content ===== */}
+      <div className="flex-1 flex flex-col w-full">
+        
+        {/* ===== Top Header ===== */}
+        <header className="bg-white border-b border-gray-200 z-10 sticky top-0">
+          <div className="h-16 flex items-center justify-between px-4 md:px-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              {/* Mobile Hamburger */}
+              <button 
+                onClick={() => setMobileMenuOpen(true)} 
+                className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600"
+              >
+                <Menu size={24} />
+              </button>
+              
+              {/* Desktop Toggle */}
+              <button 
+                onClick={() => setSidebarOpen(!isSidebarOpen)} 
+                className="hidden md:block p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+              >
+                <Menu size={20} />
+              </button>
+
+              <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab}</h2>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* API Key Toggle for Mobile */}
+              <span className="text-xs font-bold text-red-400">Key</span>
+              <button 
+                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                className={`md:hidden p-2 rounded-full transition-colors ${apiKey ? "text-green-600 bg-green-50" : "text-gray-500 bg-gray-100"}`}
+              >
+                <Key size={20} />
+              </button>
+
+              {/* Desktop API Input */}
+              <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-1.5 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                <span className="text-xs font-bold text-red-400 mr-2">Key</span>
+                <input 
+                  type="password" 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Your Key..." 
+                  className="bg-transparent border-none outline-none text-sm w-24 lg:w-32 text-gray-700 placeholder-gray-400"
+                />
+              </div>
+
+              {/* User Avatar */}
+              <div className="h-9 w-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
+                {displayUser.name.charAt(0).toUpperCase()}
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
-      {/* ===== FULL SCREEN SPINNER OVERLAY ===== */}
+
+          {/* Mobile API Key Input (Collapsible) */}
+          {showApiKeyInput && (
+            <div className="md:hidden px-4 pb-4 animate-in slide-in-from-top-2">
+              <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                <span className="text-xs font-bold text-red-400 mr-2 whitespace-nowrap">Your Key</span>
+                <input 
+                  type="password" 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="Enter your key" 
+                  className="bg-transparent border-none outline-none text-sm w-full text-gray-700"
+                />
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* ===== Scrollable Content Area ===== */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+          
+          {/* --- DASHBOARD TAB --- */}
+          {activeTab === "dashboard" && (
+            <div className="space-y-4 md:space-y-6">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                 {/* Stat Cards */}
+                 {[
+                   { icon: <Store size={24} />, color: "text-blue-600", bg: "bg-blue-100", label: "Restaurants", val: getFilteredRestaurants(restaurants).length },
+                   { icon: <Tag size={24} />, color: "text-green-600", bg: "bg-green-100", label: "Offers", val: offers.length },
+                   { icon: <User size={24} />, color: "text-purple-600", bg: "bg-purple-100", label: "Session", val: apiKey ? "Active" : "No Key" }
+                 ].map((stat, idx) => (
+                   <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                      <div className={`p-3 ${stat.bg} ${stat.color} rounded-lg`}>{stat.icon}</div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-800">{stat.val}</h3>
+                      </div>
+                   </div>
+                 ))}
+               </div>
+
+               {/* Quick Actions */}
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+                    <h3 className="text-lg md:text-xl font-bold mb-2">Manage Restaurants</h3>
+                    <button onClick={() => setActiveTab('restaurants')} className="w-full md:w-auto bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition mt-2">Go to Restaurants</button>
+                 </div>
+                 <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-6 text-white shadow-lg">
+                    <h3 className="text-lg md:text-xl font-bold mb-2">Offer Management</h3>
+                    <button onClick={() => setActiveTab('offers')} className="w-full md:w-auto bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition mt-2">Manage Offers</button>
+                 </div>
+               </div>
+            </div>
+          )}
+
+          {/* --- RESTAURANTS TAB --- */}
+          {activeTab === "restaurants" && (
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <h3 className="text-lg md:text-xl font-bold text-gray-800">All Restaurants</h3>
+                <button 
+                  onClick={() => setShowAddRestaurantForm(!showAddRestaurantForm)}
+                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
+                >
+                  {showAddRestaurantForm ? <X size={18} /> : <Plus size={18} />}
+                  {showAddRestaurantForm ? "Cancel" : "Add New"}
+                </button>
+              </div>
+
+              {/* Add Restaurant Form */}
+              {showAddRestaurantForm && (
+                <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-blue-100 animate-in slide-in-from-top-2">
+                  <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">New Restaurant</h4>
+                  <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                       <label className="text-xs font-semibold uppercase text-gray-500">Name *</label>
+                       <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Burger King" required />
+                    </div>
+                    <div className="space-y-1">
+                       <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
+                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Doha, West Bay" required />
+                    </div>
+                    {/* ... (Other fields follow same pattern) ... */}
+                    <div className="space-y-1">
+                       <label className="text-xs font-semibold uppercase text-gray-500">Cuisine</label>
+                       <select name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 bg-white">
+                         <option value="">Select Cuisine</option>
+                         {cuisineLists.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                       </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold uppercase text-gray-500">Rating</label>
+                            <input name="rating" type="number" step="1" value={form.rating} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" placeholder="4" required />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold uppercase text-gray-500">Country</label>
+                            <select name="country" value={form.country} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                            {Object.values(countryMap).map((c) => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                       <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Logo *</label>
+                       <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700" required />
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 pt-2">
+                      <button type="submit" className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2">
+                        <Save size={18} /> Save Restaurant
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Restaurant List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {getFilteredRestaurants(restaurants).map((r) => (
+                  <div key={r.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-row md:flex-col">
+                    {/* Mobile: Row Layout / Desktop: Card Layout */}
+                    <div className="w-24 md:w-full md:h-24 bg-gray-100 flex-shrink-0 relative flex items-center justify-center">
+                        <img src={r.logoUrl || "https://via.placeholder.com/150"} alt={r.name} className="md:absolute md:-bottom-10 md:left-5 h-16 w-16 md:h-20 md:w-20 rounded-lg md:border-4 md:border-white md:shadow object-cover m-2 md:m-0" />
+                    </div>
+                    <div className="p-3 md:px-5 md:pb-5 md:pt-12 flex-1 flex flex-col justify-center md:block">
+                      <h4 className="font-bold text-gray-800 leading-tight">{r.name}</h4>
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 line-clamp-1"><Store size={12} /> {r.address}</p>
+                      <div className="hidden md:flex flex-wrap gap-2 mt-3">
+                           <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">{r.cuisine || "General"}</span>
+                      </div>
+                      <button onClick={() => { setSelectedRestaurant(r.id); setActiveTab("offers"); }} className="mt-2 md:mt-4 w-full flex items-center justify-center gap-2 bg-gray-50 text-blue-600 py-1.5 md:py-2 rounded-lg border border-gray-200 text-xs md:text-sm font-medium">
+                        Manage Offers <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* --- OFFERS TAB --- */}
+          {activeTab === "offers" && (
+            <div className="space-y-4 md:space-y-6">
+               {/* Filter Bar */}
+               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
+                    <select 
+                      value={selectedRestaurant} 
+                      onChange={handleSelectRestaurant} 
+                      className="bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-3"
+                    >
+                      <option value="">-- Choose a Restaurant --</option>
+                      {getFilteredRestaurants(restaurants).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </select>
+                  </div>
+                  
+                  {selectedRestaurant && (
+                    <button 
+                      onClick={() => setShowAddOfferForm(!showAddOfferForm)}
+                      className="w-full md:w-auto self-end bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
+                    >
+                      {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
+                      {showAddOfferForm ? "Cancel" : "Add Offer"}
+                    </button>
+                  )}
+               </div>
+
+               {/* Add Offer Form */}
+               {showAddOfferForm && selectedRestaurant && (
+                 <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-green-100">
+                    <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
+                    <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                       <div className="md:col-span-2 space-y-1">
+                          <label className="text-xs font-semibold text-gray-500">Offer Title</label>
+                          <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 outline-none" placeholder="e.g. Arabic Mandi" required  />
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
+                          <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                            <option value="">Select</option>
+                            {cuisineLists.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                          </select>
+                       </div>
+                       
+                       {/* Price Row */}
+                       <div className="grid grid-cols-2 gap-3 md:contents">
+                           <div className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-500">Original (QAR)</label>
+                              <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required  />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-500">Discounted (QAR)</label>
+                              <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required  />
+                           </div>
+                       </div>
+
+                       {/* Date Row */}
+                       <div className="grid grid-cols-2 gap-3 md:contents">
+                           <div className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-500">Valid From</label>
+                              <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                           </div>
+                           <div className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-500">Valid To</label>
+                              <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                           </div>
+                       </div>
+
+                       <div className="space-y-1 md:col-span-1">
+                          <label className="text-xs font-semibold text-gray-500">Offer Type</label>
+                          <select name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                             {["All", "Buffet", "Combo", "Happy Hour", "Special", "Catering", "Discount"].map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                       </div>
+
+                       <div className="space-y-1 md:col-span-2">
+                          <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Image *</label>
+                          <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-50 file:text-green-700" required/>
+                       </div>
+
+                       <div className="md:col-span-3 space-y-1">
+                          <label className="text-xs font-semibold text-gray-500">Description</label>
+                          <textarea name="description" rows={3} value={offerForm.description} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" />
+                       </div>
+                       
+                       <div className="md:col-span-3 pt-2">
+                          <button type="submit" className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium shadow-md">Upload Offer</button>
+                       </div>
+                    </form>
+                 </div>
+               )}
+
+               {/* Offers Display */}
+               {!selectedRestaurant ? (
+                 <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                   <Store size={40} className="mb-3 opacity-30" />
+                   <p className="text-sm">Select a restaurant to manage offers.</p>
+                 </div>
+               ) : offers.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                   <Tag size={40} className="mb-3 opacity-30" />
+                   <p className="text-sm">No offers found. Create one!</p>
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                   {getFilteredOffers(offers).map((o) => (
+                     <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col">
+                        <div className="relative h-48 sm:h-40">
+                          <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 right-2">
+                             <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-2 rounded-full shadow hover:bg-red-600 hover:text-white transition">
+                               <Trash2 size={16} />
+                             </button>
+                          </div>
+                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded uppercase tracking-wide">
+                            {o.offerType}
+                          </div>
+                        </div>
+                        <div className="p-4 flex-1 flex flex-col">
+                          <h5 className="font-bold text-gray-800 line-clamp-1">{o.title}</h5>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">{o.description}</p>
+                          <div className="mt-4 flex items-baseline justify-between">
+                             <div className="flex items-baseline gap-2">
+                                <span className="text-lg font-bold text-green-600">{o.discountedPrice}</span>
+                                <span className="text-xs font-medium text-gray-400">QAR</span>
+                             </div>
+                             {o.originalPrice && <span className="text-xs text-gray-400 line-through decoration-red-400">{o.originalPrice} QAR</span>}
+                          </div>
+                        </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+            </div>
+          )}
+
+          {/* --- BULK TAB --- */}
+          {activeTab === "bulk" && (
+            <div className="mt-6 md:mt-10">
+              <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100 text-center mx-auto max-w-lg">
+                <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
+                   <UploadCloud size={32} />
+                </div>
+                <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">Bulk Import</h3>
+                <p className="text-sm text-gray-500 mb-6">Process large datasets. Ensure API Key is set.</p>
+                <button onClick={handleBulkProcessing} className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition shadow-lg shadow-purple-200">
+                  Start Processing
+                </button>
+              </div>
+            </div>
+          )}
+
+        </main>
+         {/* ===== Footer ===== */}
+        <footer className="bg-white border-t border-gray-200 py-4 px-6">
+           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+              <p>© 2025 BrowseQatar Offers Platform. All rights reserved.</p>
+              <div className="flex items-center gap-2">
+                <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
+                <span>Powered by</span>
+                <span className="font-bold text-slate-700">MerakiAi</span>
+              </div>
+           </div>
+        </footer>
+      </div>
+
+      {/* ===== Loading Overlay ===== */}
       {isUploading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center">
             <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-3" />
-            <h3 className="text-lg font-bold text-gray-800">Processing...</h3>
-            <p className="text-sm text-gray-500">Please wait while we upload your data.</p>
+            <p className="text-sm font-semibold text-gray-700">Processing...</p>
           </div>
         </div>
       )}
     </div>
   );
 }
-

@@ -312,7 +312,7 @@ export default function ManageOffers() {
                 </button>
               </div>
               <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
-                {displayUser.name.charAt(0)}
+                {displayUser.name.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
@@ -342,8 +342,8 @@ export default function ManageOffers() {
                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
                     <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><User size={24} /></div>
                     <div>
-                      <p className="text-sm text-gray-500 font-medium">Active Session</p>
-                      <h3 className="text-lg font-bold text-gray-800">{apiKey ? "Authenticated" : "Key Required"}</h3>
+                      <p className="text-sm text-gray-500 font-medium">Session</p>
+                      <h3 className="text-lg font-bold text-gray-800">{apiKey ? "Active" : "No Key"}</h3>
                     </div>
                  </div>
                </div>
@@ -626,6 +626,7 @@ export default function ManageOffers() {
            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
               <p>© 2025 Restaurant Offers Platform. All rights reserved.</p>
               <div className="flex items-center gap-2">
+                <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
                 <span>Powered by</span>
                 <span className="font-bold text-slate-700">MerakiAi</span>
               </div>
