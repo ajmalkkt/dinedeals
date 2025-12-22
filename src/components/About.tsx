@@ -65,7 +65,7 @@ export default function AboutUs() {
           </h1>
 
           <p className="text-gray-700 leading-relaxed mb-3 text-center">
-            Welcome to <strong>DineDeals</strong> — your go-to destination for
+            Welcome to <strong>BQ's Dine Offers</strong> — your go-to destination for
             the best dining offers and restaurant deals across the region.
           
             We connect food lovers with exclusive promotions, helping you
@@ -95,7 +95,6 @@ export default function AboutUs() {
                     alt={e.name}
                     className="w-16 h-16 object-contain hover:scale-110 transition-transform"
                   />
-                  <span className="text-xs mt-1 text-gray-600">{e.name}</span>
                 </div>
               )
             )}
@@ -105,10 +104,10 @@ export default function AboutUs() {
       <footer className="bg-muted py-6 px-4 mt-8">
         <div className="container mx-auto text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-3">
-            <p className="m-0 text-gray-500">© 2025 BrowseQatar Offers Platform. All rights reserved.</p>
+            <p className="m-0 text-gray-900">© 2025 BrowseQatar Offers Platform. All rights reserved.</p>
             <span className="text-muted-foreground">|</span>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <img src={'/meraki.webp'} alt="Meraki AI" className="w-6 h-6 object-contain" />
+              <img src={'/meraki.webp'} alt="Meraki AI" className="w-5 h-5 object-contain" />
               <span>Powered by MerakiAi</span>
             </div>
           </div>

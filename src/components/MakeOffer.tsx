@@ -9,8 +9,11 @@ import { ArrowLeft } from "lucide-react";
 interface Offer {
   id: number;
   title: string;
+  restaurantId: number;
+  cuisine?: string;
   validTo: string;
   active?: boolean;
+  ownerLogin?: string;
 }
 
 export default function MakeOfferOnline() {
@@ -116,7 +119,7 @@ export default function MakeOfferOnline() {
                     onChange={() => handleSelectOffer(offer.id)}
                 />
                 <span className="text-sm text-gray-700">
-                    #{offer.id} — {offer.title}{" "}
+                    #{offer.id} — {offer.title} from Restaurant {offer.restaurantId} Owner: {offer.ownerLogin}{" "}
                     <span className="text-gray-500 text-xs">
                     (Valid till: {offer.validTo ? offer.validTo.split("T")[0] : "N/A"})
                     </span>

@@ -172,7 +172,7 @@ export default function ManageOffers() {
 
   const handleRestaurantSubmit = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter your API Key.");
+    if (!apiKey) return alert("Please enter your Key.");
     if (!form.name || !form.address || !form.logo || !form.country) return alert("Missing required fields.");
 
     const formData = new FormData();
@@ -204,7 +204,7 @@ export default function ManageOffers() {
 
   const handleOfferUpload = async (e) => {
     e.preventDefault();
-    if (!apiKey) return alert("Please enter your API Key.");
+    if (!apiKey) return alert("Please enter your Key.");
     if (!selectedRestaurant) return alert("Select a restaurant first.");
 
     const formData = new FormData();
@@ -701,7 +701,7 @@ export default function ManageOffers() {
                    <UploadCloud size={32} />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">Bulk Import</h3>
-                <p className="text-sm text-gray-500 mb-6">Process large datasets. Ensure API Key is set.</p>
+                <p className="text-sm text-gray-500 mb-6">Process large datasets. Ensure your Key is set.</p>
                 <button onClick={handleBulkProcessing} className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition shadow-lg shadow-purple-200">
                   Start Processing
                 </button>
