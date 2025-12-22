@@ -1,5 +1,5 @@
 import React from "react";
-import useAuth from "./auth/useAuth";
+import useAuth from "./useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children }: { children: JSX.Element }) {

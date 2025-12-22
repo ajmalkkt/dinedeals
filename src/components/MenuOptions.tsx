@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Smartphone, Apple, LogOut, Heart } from "lucide-react";
+import { LogOut } from "lucide-react";
 import useAuth from "../auth/useAuth";
 import { useModal } from "../contexts/ModalContext"; // 1. Import the Context
 import { ENABLE_SIGNUP } from "../config/appConfig";
@@ -86,7 +86,6 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
         onClick={() => safeNavigate("/favourites")}
         className="block w-full text-left px-5 py-3 hover:bg-blue-50 border-b border-gray-200 text-gray-700 font-medium flex items-center gap-2"
       >
-        <Heart className="w-4 h-4" />
         Favourites
       </button>
 
@@ -164,16 +163,16 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
       <div className="flex justify-around items-center py-4 bg-gray-50">
         <div
           className="flex flex-col items-center text-gray-600 cursor-pointer hover:text-black transition-colors"
-          onClick={() => alert("Coming soon!")}
+          onClick={() => alert("Launching soon! We appreciate your patience.")}
         >
-          <Smartphone className="w-6 h-6 mb-1" />
+          <img src={'/android.png'} alt="android-link" className="w-6 h-6 object-contain" />
           <span className="text-xs font-medium">Android</span>
         </div>
         <div
           className="flex flex-col items-center text-gray-600 cursor-pointer hover:text-black transition-colors"
-          onClick={() => alert("Coming soon!")}
+          onClick={() => alert("Launching soon! We appreciate your patience.")}
         >
-          <Apple className="w-6 h-6 mb-1" />
+          <img src={'/apple.png'} alt="apple-link" className="w-6 h-6 object-contain" />
           <span className="text-xs font-medium">iOS</span>
         </div>
       </div>

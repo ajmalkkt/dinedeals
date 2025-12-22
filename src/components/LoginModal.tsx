@@ -113,7 +113,7 @@ export default function LoginModal() {
                 {mode === 'FORGOT_PASSWORD' && 'Reset Password'}
               </h2>
               <span className="text-xs text-gray-500 font-medium">
-                Brwose Qatar's best dining offers
+                Browse Qatar's best dining offers
               </span>
             </div>
           </div>
@@ -200,16 +200,19 @@ export default function LoginModal() {
           </form>
 
           {/* Footer Links */}
-          <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-600 space-y-3">
+          <div className="mt-2 pt-4 border-t border-gray-100 text-center text-sm text-gray-600 space-y-1">
             {mode === 'LOGIN' && (
               <>
                 {ENABLE_SIGNUP && (
                   <p>Don't have an account? <button onClick={() => setMode('SIGNUP')} className="text-blue-600 font-bold hover:underline">Sign up</button></p>
                 )}
                 {!ENABLE_SIGNUP && (
-                  <p className="text-gray-500 text-xs italic">Restaurant owner, Don't have an account? Please <a href="#" className="text-blue-600 font-semibold hover:underline">Register your business</a></p>
+                  <div>
+                    <p className="text-gray-900 text-medium italic">Restaurant owner, Don't have an account? Please <a href="#" className="text-blue-600 font-semibold hover:underline">Register your business</a></p> 
+                    <p className="text-gray-900 text-medium italic">For public user, Login account is not required; You may please use Favourites section to keep your favorite offers handy.</p>
+                  </div>
                 )}
-                <button onClick={() => setMode('FORGOT_PASSWORD')} className="text-gray-500 hover:text-gray-800 text-xs">Forgot Password?</button>
+                <button onClick={() => setMode('FORGOT_PASSWORD')} className="text-red-900 hover:text-blue-800 text-s">Forgot Password?</button>
               </>
             )}
             

@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   Loader2,
   EyeOff, // Added icon for Inactive Offers
-  AlertCircle // Added icon for status
+  AlertCircle, // Added icon for status
+  ExternalLink
 } from "lucide-react";
 
 // Mock Services (Keep your existing imports here)
@@ -677,6 +678,17 @@ export default function ManageOffers() {
                                 <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
                               </div>
                           </div>
+                          {/* ================= NEW LINK ADDED HERE ================= */}
+                          {user?.role === "admin" && <div className="mt-4 pt-3 border-t border-gray-100">
+                             <button 
+                               onClick={() => navigate('/make-offer', { state: { offer: o } })} 
+                               className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition"
+                             >
+                               Review & Activate <ExternalLink size={14} />
+                             </button>
+                          </div>
+                          }
+                          {/* ======================================================== */}
                         </div>
                       </div>
                     ))}

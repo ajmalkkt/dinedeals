@@ -7,7 +7,8 @@ import MakeOffer from "./components/MakeOffer";
 import Favourites from "./components/Favourites";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ProtectedRoute from "./ProtectedRoute";
+import ProtectedRoute from "./auth/ProtectedRoute";
+import AdminRoute from "./auth/AdminRoute";
 import LoginModal from "./components/LoginModal";
 import ManageOffers from "./components/ManageOffers";
             
@@ -23,7 +24,7 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute><AdminImageManager /></ProtectedRoute>} />
             <Route path="/about" element={<About />} />
             {/*<Route path="/login" element={<LoginPage />} /> */}
-            <Route path="/make-offer" element={<ProtectedRoute><MakeOffer /></ProtectedRoute>} />
+            <Route path="/make-offer" element={<AdminRoute><MakeOffer /></AdminRoute>} />
             <Route path="/favourites" element={<Favourites />} />
             <Route path="/manage-offers" element={<ProtectedRoute><ManageOffers /></ProtectedRoute>} />
           </Routes>
