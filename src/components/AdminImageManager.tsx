@@ -19,11 +19,16 @@ import {
   ArrowLeft,
   Loader2,
   Key,
-  EyeOff, // Added icon for Inactive Offers
-  AlertCircle // Added icon for status
+  EyeOff,
+  AlertCircle,
+  MessageSquare, // Added for Messages
+  CheckCircle,   // Added for Actions
+  XCircle,       // Added for Status
+  Clock,         // Added for Status
+  ChevronLeft    // Added for Pagination
 } from "lucide-react";
 
-// Services
+// Services (Existing)
 import {
   getAllRestaurants,
   uploadRestaurant,
@@ -33,14 +38,16 @@ import {
   getOffersByRestaurantId,
   uploadOffer,
   deleteOffer,
-  getInactiveOffers, // Imported as requested
+  getInactiveOffers,
 } from "../services/offerService";
+import { getEnquiries, updateEnquiryStatus } from "../services/enquiryService";
 
 // Auth Hook
 import useAuth from "../auth/useAuth";
 
 // App Config
 import { cuisineLists, countryMap } from "../config/appConfig";
+
 
 export default function ManageOffers() {
   const navigate = useNavigate();
@@ -70,7 +77,15 @@ export default function ManageOffers() {
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [offers, setOffers] = useState([]);
-  const [inactiveOffers, setInactiveOffers] = useState([]); // State for inactive offers
+  const [inactiveOffers, setInactiveOffers] = useState([]);
+  
+  // -- Message States --
+  const [messages, setMessages] = useState([]);
+  const [msgPage, setMsgPage] = useState(1);
+  const [msgTotalPages, setMsgTotalPages] = useState(1);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  // --------------------
+
   const [logoPreview, setLogoPreview] = useState(null);
   const [brandPreview, setBrandPreview] = useState(null);
   const [apiKey, setApiKey] = useState("");
@@ -123,8 +138,6 @@ export default function ManageOffers() {
   // Fetch inactive offers when tab is switched
   useEffect(() => {
     if (activeTab === "inactive") {
-      // Assuming getInactiveOffers doesn't require args, or we pass headers if needed
-      // If it requires auth, we might need to pass { headers: getAuthHeaders() }
       getInactiveOffers()
         .then((data) => setInactiveOffers(data || []))
         .catch((err) => {
@@ -132,13 +145,32 @@ export default function ManageOffers() {
             setInactiveOffers([]);
         });
     }
-  }, [activeTab]);
+    
+    // Fetch Messages when tab is switched
+    if (activeTab === "messages") {
+      fetchMessages(msgPage);
+    }
+  }, [activeTab, msgPage]); // Re-run when tab or page changes
+
+  const fetchMessages = async (page) => {
+    //if (!apiKey) return; // Wait for key
+    setLoadingMessages(true);
+    try {
+      const data = await getEnquiries(page, 10, apiKey);
+      // Assuming backend returns { enquiries: [...], totalPages: x, page: y }
+      // Adjust property names based on your actual backend response
+      setMessages(data.enquiries || []);
+      setMsgTotalPages(data.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   useEffect(() => {
     if (activeTab === 'offers' && !selectedRestaurant && restaurants.length > 0) {
-      // Don't auto-select on mobile to keep view clean, only on desktop if needed
-      // Keeping logic but making it safe
-      // handleSelectRestaurant({ target: { value: restaurants[0].id } });
+       // Logic kept safe
     }
   }, [activeTab, restaurants]);
 
@@ -245,6 +277,24 @@ export default function ManageOffers() {
     finally { setIsUploading(false); }
   };
 
+  // --- Message Handlers ---
+  const handleResolveMessage = async (id) => {
+    if (!apiKey) return alert("Please enter your Key.");
+    if (!window.confirm("Mark this message as RESOLVED?")) return;
+    
+    setIsUploading(true);
+    try {
+      await updateEnquiryStatus(id, "RESOLVED", apiKey);
+      // Refresh list
+      fetchMessages(msgPage);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Format dates for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -296,7 +346,6 @@ export default function ManageOffers() {
            ) : (
              <span className="text-xl font-bold text-blue-600">M</span>
            )}
-           {/* Close button for mobile */}
            <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-500">
              <X size={24} />
            </button>
@@ -306,8 +355,9 @@ export default function ManageOffers() {
           {renderSidebarItem("dashboard", <LayoutDashboard size={20} />, "Dashboard")}
           {renderSidebarItem("restaurants", <Store size={20} />, "Restaurants")}
           {renderSidebarItem("offers", <Tag size={20} />, "Offers")}
-          {/* New Inactive Offers Menu Item */}
           {renderSidebarItem("inactive", <EyeOff size={20} />, "Inactive Offers")}
+          {/* New Messages Item */}
+          {renderSidebarItem("messages", <MessageSquare size={20} />, "Messages")}
           {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
         </nav>
 
@@ -326,7 +376,6 @@ export default function ManageOffers() {
         <header className="bg-white border-b border-gray-200 z-10 sticky top-0">
           <div className="h-16 flex items-center justify-between px-4 md:px-6 shadow-sm">
             <div className="flex items-center gap-3">
-              {/* Mobile Hamburger */}
               <button 
                 onClick={() => setMobileMenuOpen(true)} 
                 className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600"
@@ -334,7 +383,6 @@ export default function ManageOffers() {
                 <Menu size={24} />
               </button>
               
-              {/* Desktop Toggle */}
               <button 
                 onClick={() => setSidebarOpen(!isSidebarOpen)} 
                 className="hidden md:block p-2 hover:bg-gray-100 rounded-lg text-gray-600"
@@ -342,11 +390,10 @@ export default function ManageOffers() {
                 <Menu size={20} />
               </button>
 
-              <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab === "inactive" ? "Inactive Offers" : activeTab}</h2>
+              <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab}</h2>
             </div>
 
             <div className="flex items-center gap-3">
-              {/* API Key Toggle for Mobile */}
               <span className="text-xs font-bold text-red-400">Key</span>
               <button 
                 onClick={() => setShowApiKeyInput(!showApiKeyInput)}
@@ -355,7 +402,6 @@ export default function ManageOffers() {
                 <Key size={20} />
               </button>
 
-              {/* Desktop API Input */}
               <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-1.5 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <span className="text-xs font-bold text-red-400 mr-2">Key</span>
                 <input 
@@ -367,14 +413,12 @@ export default function ManageOffers() {
                 />
               </div>
 
-              {/* User Avatar */}
               <div className="h-9 w-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold border-2 border-white shadow-sm">
                 {displayUser.name.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
 
-          {/* Mobile API Key Input (Collapsible) */}
           {showApiKeyInput && (
             <div className="md:hidden px-4 pb-4 animate-in slide-in-from-top-2">
               <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
@@ -413,7 +457,6 @@ export default function ManageOffers() {
                  ))}
                </div>
 
-               {/* Quick Actions */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
                     <h3 className="text-lg md:text-xl font-bold mb-2">Manage Restaurants</h3>
@@ -430,6 +473,7 @@ export default function ManageOffers() {
           {/* --- RESTAURANTS TAB --- */}
           {activeTab === "restaurants" && (
             <div className="space-y-4 md:space-y-6">
+              {/* ... (Existing Restaurant Tab Content) ... */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <h3 className="text-lg md:text-xl font-bold text-gray-800">All Restaurants</h3>
                 <button 
@@ -441,28 +485,27 @@ export default function ManageOffers() {
                 </button>
               </div>
 
-              {/* Add Restaurant Form */}
               {showAddRestaurantForm && (
                 <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-blue-100 animate-in slide-in-from-top-2">
                   <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">New Restaurant</h4>
                   <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
+                     {/* ... (Existing Form Fields) ... */}
+                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Name *</label>
-                       <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Burger King" required />
+                       <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
                     </div>
                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
-                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Doha, West Bay" required />
+                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
                     </div>
-                    {/* ... (Other fields follow same pattern) ... */}
                     <div className="space-y-1">
                        <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
-                       <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Indian, Arabic,..." />
+                       <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <label className="text-xs font-semibold uppercase text-gray-500">Rating</label>
-                            <input name="rating" type="number" step="1" value={form.rating} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" placeholder="4" required />
+                            <input name="rating" type="number" step="1" value={form.rating} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold uppercase text-gray-500">Country</label>
@@ -484,20 +527,15 @@ export default function ManageOffers() {
                 </div>
               )}
 
-              {/* Restaurant List */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {getFilteredRestaurants(restaurants).map((r) => (
                   <div key={r.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-row md:flex-col">
-                    {/* Mobile: Row Layout / Desktop: Card Layout */}
                     <div className="w-24 md:w-full md:h-24 bg-gray-100 flex-shrink-0 relative flex items-center justify-center">
                         <img src={r.logoUrl || "https://via.placeholder.com/150"} alt={r.name} className="md:absolute md:-bottom-10 md:left-5 h-16 w-16 md:h-20 md:w-20 rounded-lg md:border-4 md:border-white md:shadow object-cover m-2 md:m-0" />
                     </div>
                     <div className="p-3 md:px-5 md:pb-5 md:pt-12 flex-1 flex flex-col justify-center md:block">
                       <h4 className="font-bold text-gray-800 leading-tight">{r.name}</h4>
                       <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 line-clamp-1"><Store size={12} /> {r.address}</p>
-                      <div className="hidden md:flex flex-wrap gap-2 mt-3">
-                           <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">{r.cuisine || "General"}</span>
-                      </div>
                       <button onClick={() => { setSelectedRestaurant(r.id); setActiveTab("offers"); }} className="mt-2 md:mt-4 w-full flex items-center justify-center gap-2 bg-gray-50 text-blue-600 py-1.5 md:py-2 rounded-lg border border-gray-200 text-xs md:text-sm font-medium">
                         Manage Offers <ChevronRight size={14} />
                       </button>
@@ -511,7 +549,7 @@ export default function ManageOffers() {
           {/* --- OFFERS TAB --- */}
           {activeTab === "offers" && (
             <div className="space-y-4 md:space-y-6">
-               {/* Filter Bar */}
+               {/* ... (Existing Offers Tab Content) ... */}
                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4">
                   <div className="flex-1">
                     <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
@@ -532,14 +570,14 @@ export default function ManageOffers() {
                   )}
                </div>
 
-               {/* Add Offer Form */}
                {showAddOfferForm && selectedRestaurant && (
                  <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-green-100">
                     <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
                     <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                       {/* ... (Existing Offer Form Fields) ... */}
                        <div className="md:col-span-2 space-y-1">
                           <label className="text-xs font-semibold text-gray-500">Offer Title</label>
-                          <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 outline-none" placeholder="e.g. Arabic Mandi" required  />
+                          <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 outline-none" required  />
                        </div>
                        <div className="space-y-1">
                           <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
@@ -593,7 +631,6 @@ export default function ManageOffers() {
                  </div>
                )}
 
-               {/* Offers Display */}
                {!selectedRestaurant ? (
                  <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
                    <Store size={40} className="mb-3 opacity-30" />
@@ -608,6 +645,7 @@ export default function ManageOffers() {
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                    {getFilteredOffers(offers).map((o) => (
                      <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col">
+                        {/* ... (Existing Offer Card) ... */}
                         <div className="relative h-48 sm:h-40">
                           <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
                           <div className="absolute top-2 right-2">
@@ -637,7 +675,7 @@ export default function ManageOffers() {
             </div>
           )}
 
-          {/* --- INACTIVE OFFERS TAB (New) --- */}
+          {/* --- INACTIVE OFFERS TAB --- */}
           {activeTab === "inactive" && (
             <div className="space-y-4 md:space-y-6">
                <div className="flex items-center justify-between">
@@ -690,6 +728,132 @@ export default function ManageOffers() {
                    ))}
                  </div>
                )}
+            </div>
+          )}
+
+          {/* --- MESSAGES TAB (NEW) --- */}
+          {activeTab === "messages" && (
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <MessageSquare size={24} className="text-blue-500" />
+                  Enquiries & Messages
+                </h3>
+              </div>
+              
+              {loadingMessages ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <MessageSquare size={48} className="mb-4 opacity-30" />
+                  <p className="text-sm font-medium">No messages found.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
+                          <th className="px-6 py-4 font-semibold">Date</th>
+                          <th className="px-6 py-4 font-semibold">Name</th>
+                          <th className="px-6 py-4 font-semibold">Contact</th>
+                          <th className="px-6 py-4 font-semibold w-1/3">Message</th>
+                          <th className="px-6 py-4 font-semibold">Status</th>
+                          {user?.role === "admin" && <th className="px-6 py-4 font-semibold text-right">Action</th>}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                        {messages.map((msg) => (
+                          <tr key={msg._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                              {formatDate(msg.createdAt)}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-gray-900">
+                              {msg.name}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span>{msg.email}/</span>
+                                <span className="text-xs text-gray-500">{msg.phone}</span>
+                              </div>
+                            </td>
+                            {/* ✅ UPDATED MESSAGE COLUMN WITH TOOLTIP */}
+                            <td className="px-6 py-4 relative">
+                              {msg.message.length > 10 ? (
+                                <div className="group relative inline-block cursor-help">
+                                  {/* The Visible Truncated Text */}
+                                  <p className="line-clamp-2 text-gray-600">
+                                    {msg.message}
+                                  </p>
+
+                                  {/* The Custom Tooltip Popup */}
+                                  <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-xl z-50 pointer-events-none">
+                                    {/* Tooltip Text */}
+                                    <p className="leading-relaxed">
+                                      {msg.message}
+                                    </p>
+                                    
+                                    {/* Tooltip Arrow (Optional Visual Flair) */}
+                                    <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-600">{msg.message}</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                                  msg.status === 'IN_PROGRESS' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                                  msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                                  'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                {msg.status === 'RESOLVED' && <CheckCircle size={12} />}
+                                {msg.status === 'NEW' && <Clock size={12} />}
+                                {msg.status === 'SEND_FAILED' && <XCircle size={12} />}
+                                {msg.status}
+                              </span>
+                            </td>
+                            {user?.role === "admin" && <td className="px-6 py-4 text-right">
+                              {msg.status !== "RESOLVED" && (
+                                <button
+                                  onClick={() => handleResolveMessage(msg._id)}
+                                  className="text-xs bg-white border border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-200 text-gray-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm font-medium"
+                                >
+                                  Mark Resolved
+                                </button>
+                              )}
+                              </td>
+                            }
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                    <button
+                      onClick={() => setMsgPage(p => Math.max(1, p - 1))}
+                      disabled={msgPage === 1}
+                      className="flex items-center gap-1 text-sm text-gray-600 disabled:opacity-50 hover:text-blue-600 disabled:hover:text-gray-600 transition"
+                    >
+                      <ChevronLeft size={16} /> Previous
+                    </button>
+                    <span className="text-xs font-medium text-gray-500">
+                      Page {msgPage} of {msgTotalPages}
+                    </span>
+                    <button
+                      onClick={() => setMsgPage(p => Math.min(msgTotalPages, p + 1))}
+                      disabled={msgPage === msgTotalPages}
+                      className="flex items-center gap-1 text-sm text-gray-600 disabled:opacity-50 hover:text-blue-600 disabled:hover:text-gray-600 transition"
+                    >
+                      Next <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

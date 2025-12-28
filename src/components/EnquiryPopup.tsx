@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ENQUIRY_EMAIL } from "../config/appConfig";
-import { ENQUIRY_API_URL } from "../config/apiConfig";
+import { sendEnquiryMessage } from "../services/enquiryService";
 
 interface EnquiryPopupProps {
   open: boolean;
@@ -55,20 +55,12 @@ const EnquiryPopup: React.FC<EnquiryPopupProps> = ({ open, onClose }) => {
     setSending(true);
     setError("");
     try {
-      const res = await fetch(ENQUIRY_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ details, email, phone }),
-      });
-
-      if (res.ok) {
-        setSent(true);
-        setDetails("");
-        setEmail("");
-        setPhone("");
-      } else {
-        setError("Failed to send enquiry. Please try again later.");
-      }
+      const res = await sendEnquiryMessage(details, email, phone);
+      setSent(true);
+      setDetails("");
+      setEmail("");
+      setPhone("");
+    
     } catch {
       setError("Failed to send enquiry. Please try again later.");
     } finally {

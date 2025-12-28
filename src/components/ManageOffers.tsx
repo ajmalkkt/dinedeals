@@ -20,7 +20,12 @@ import {
   Loader2,
   EyeOff, // Added icon for Inactive Offers
   AlertCircle, // Added icon for status
-  ExternalLink
+  ExternalLink,
+  MessageSquare, // Added for Messages
+  CheckCircle,   // Added for Actions
+  XCircle,       // Added for Status
+  Clock,         // Added for Status
+  ChevronLeft    // Added for Pagination
 } from "lucide-react";
 
 // Mock Services (Keep your existing imports here)
@@ -35,6 +40,8 @@ import {
   deleteOffer,
   getInactiveOffers, // Imported as requested
 } from "../services/offerService";
+
+import { getEnquiries, updateEnquiryStatus } from "../services/enquiryService";
 
 // Auth Hook
 import useAuth from "../auth/useAuth";
@@ -77,6 +84,14 @@ export default function ManageOffers() {
 
   // Add this near your other useState definitions
   const [isUploading, setIsUploading] = useState(false);
+
+  // -- Message States --
+  const [messages, setMessages] = useState([]);
+  const [msgPage, setMsgPage] = useState(1);
+  const [msgTotalPages, setMsgTotalPages] = useState(1);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  // --------------------
+  
 
   // ===== Forms =====
   // Helper to get today's date in YYYY-MM-DD format
@@ -144,7 +159,27 @@ export default function ManageOffers() {
             setInactiveOffers([]);
         });
     }
-  }, [activeTab]);
+    // Fetch Messages when tab is switched
+    if (activeTab === "messages") {
+      fetchMessages(msgPage);
+    }
+  }, [activeTab, msgPage]); // Re-run when tab or page changes
+
+  const fetchMessages = async (page) => {
+    //if (!apiKey) return; // Wait for key
+    setLoadingMessages(true);
+    try {
+      const data = await getEnquiries(page, 10, apiKey);
+      // Assuming backend returns { enquiries: [...], totalPages: x, page: y }
+      // Adjust property names based on your actual backend response
+      setMessages(data.enquiries || []);
+      setMsgTotalPages(data.totalPages || 1);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   useEffect(() => {
     // When switching to offers tab, if no restaurant selected, select first one
@@ -257,7 +292,23 @@ export default function ManageOffers() {
       setIsUploading(false); // <--- STOP LOADING
     }
   };
-
+  // --- Message Handlers ---
+  const handleResolveMessage = async (id) => {
+    if (!apiKey) return alert("Please enter your Key.");
+    if (!window.confirm("Mark this message as RESOLVED?")) return;
+    
+    setIsUploading(true);
+    try {
+      await updateEnquiryStatus(id, "RESOLVED", apiKey);
+      // Refresh list
+      fetchMessages(msgPage);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    } finally {
+      setIsUploading(false);
+    }
+  };
   // Format dates for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -298,6 +349,8 @@ export default function ManageOffers() {
           {renderSidebarItem("offers", <Tag size={20} />, "Offers")}
           {/* New Inactive Offers Menu Item */}
           {renderSidebarItem("inactive", <EyeOff size={20} />, "Inactive Offers")}
+          {/* New Messages Item */}
+          {renderSidebarItem("messages", <MessageSquare size={20} />, "Messages")}
           {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
         </nav>
 
@@ -696,6 +749,131 @@ export default function ManageOffers() {
                 )}
             </div>
           )}
+          {/* --- MESSAGES TAB (NEW) --- */}
+          {activeTab === "messages" && (
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <MessageSquare size={24} className="text-blue-500" />
+                  Enquiries & Messages
+                </h3>
+              </div>
+              
+              {loadingMessages ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <MessageSquare size={48} className="mb-4 opacity-30" />
+                  <p className="text-sm font-medium">No messages found.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
+                          <th className="px-6 py-4 font-semibold">Date</th>
+                          <th className="px-6 py-4 font-semibold">Name</th>
+                          <th className="px-6 py-4 font-semibold">Contact</th>
+                          <th className="px-6 py-4 font-semibold w-1/3">Message</th>
+                          <th className="px-6 py-4 font-semibold">Status</th>
+                          {user?.role === "admin" && <th className="px-6 py-4 font-semibold text-right">Action</th>}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                        {messages.map((msg) => (
+                          <tr key={msg._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                              {formatDate(msg.createdAt)}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-gray-900">
+                              {msg.name}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span>{msg.email}/</span>
+                                <span className="text-xs text-gray-500">{msg.phone}</span>
+                              </div>
+                            </td>
+                            {/* ✅ UPDATED MESSAGE COLUMN WITH TOOLTIP */}
+                            <td className="px-6 py-4 relative">
+                              {msg.message.length > 10 ? (
+                                <div className="group relative inline-block cursor-help">
+                                  {/* The Visible Truncated Text */}
+                                  <p className="line-clamp-2 text-gray-600">
+                                    {msg.message}
+                                  </p>
+
+                                  {/* The Custom Tooltip Popup */}
+                                  <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 absolute bottom-full left-0 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-xl z-50 pointer-events-none">
+                                    {/* Tooltip Text */}
+                                    <p className="leading-relaxed">
+                                      {msg.message}
+                                    </p>
+                                    
+                                    {/* Tooltip Arrow (Optional Visual Flair) */}
+                                    <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-600">{msg.message}</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                                  msg.status === 'IN_PROGRESS' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                                  msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                                  'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                {msg.status === 'RESOLVED' && <CheckCircle size={12} />}
+                                {msg.status === 'NEW' && <Clock size={12} />}
+                                {msg.status === 'SEND_FAILED' && <XCircle size={12} />}
+                                {msg.status}
+                              </span>
+                            </td>
+                            {user?.role === "admin" && <td className="px-6 py-4 text-right">
+                              {msg.status !== "RESOLVED" && (
+                                <button
+                                  onClick={() => handleResolveMessage(msg._id)}
+                                  className="text-xs bg-white border border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-200 text-gray-600 px-3 py-1.5 rounded-lg transition-colors shadow-sm font-medium"
+                                >
+                                  Mark Resolved
+                                </button>
+                              )}
+                              </td>
+                            }
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Pagination Footer */}
+                  <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
+                    <button
+                      onClick={() => setMsgPage(p => Math.max(1, p - 1))}
+                      disabled={msgPage === 1}
+                      className="flex items-center gap-1 text-sm text-gray-600 disabled:opacity-50 hover:text-blue-600 disabled:hover:text-gray-600 transition"
+                    >
+                      <ChevronLeft size={16} /> Previous
+                    </button>
+                    <span className="text-xs font-medium text-gray-500">
+                      Page {msgPage} of {msgTotalPages}
+                    </span>
+                    <button
+                      onClick={() => setMsgPage(p => Math.min(msgTotalPages, p + 1))}
+                      disabled={msgPage === msgTotalPages}
+                      className="flex items-center gap-1 text-sm text-gray-600 disabled:opacity-50 hover:text-blue-600 disabled:hover:text-gray-600 transition"
+                    >
+                      Next <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* --- BULK TAB --- */}
           {activeTab === "bulk" && (
             <div className="max-w-xl mx-auto mt-10">
