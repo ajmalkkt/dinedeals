@@ -111,7 +111,7 @@ export default function Favourites() {
               <h3 className="text-2xl font-semibold mb-2">No favorites yet</h3>
               <p className="text-muted-foreground mb-6">
                 Start adding offers to your favorites by clicking the heart icon on any offer.
-                This will Browser storage to save your offers. If you clear your browser data, your favorites will be lost and you'll need to add them again.
+                This will utilize Browser storage to save your offers. If you clear your browser data, your favorites will be lost and you'll need to add them again.
               </p>
               <button
                 onClick={() => navigate("/")}

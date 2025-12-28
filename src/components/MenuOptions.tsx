@@ -154,7 +154,7 @@ export default function MenuOptions({ onAddBusiness, setMenuOpen }: MenuOptionsP
             title="Logout"
             className="ml-3 text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />Log out
           </button>
         </div>
       )}
