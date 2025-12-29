@@ -877,7 +877,7 @@ export default function ManageOffers() {
          {/* ===== Footer ===== */}
         <footer className="bg-white border-t border-gray-200 py-4 px-6">
            <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
-              <p>© 2025 BrowseQatar Offers Platform. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
               <div className="flex items-center gap-2">
                 <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
                 <span>Powered by</span>
