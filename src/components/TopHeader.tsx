@@ -139,16 +139,32 @@ export default function TopHeader({
 
             {/* Level 3: search + desktop menu */}
             <div className="flex flex-row items-center gap-2 w-full">
-              <input
-                type="text"
-                value={searchQuery}
-                placeholder="Find restaurant offers and deals"
-                className="w-[80%] md:w-[80%] flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm"
-                onChange={(e) => {
-                  onSearch(e.target.value);
-                  setSearchKey(e.target.value);
-                }}
-              />
+              <div className="relative w-[80%] md:w-[80%] flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  placeholder="Find restaurant offers and deals"
+                  className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-full text-sm"
+                  onChange={(e) => {
+                    onSearch(e.target.value);
+                    setSearchKey(e.target.value);
+                  }}
+                />
+
+                {/* Clear Button */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => {
+                      onSearch("");
+                      setSearchKey("");
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               <button
                 className="brand-gradient-bg text-white px-5 py-1 rounded-full font-medium text-sm"
                 onClick={() => handleSearchClick()}

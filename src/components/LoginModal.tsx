@@ -100,7 +100,7 @@ export default function LoginModal() {
           <div className="flex items-center gap-3">
             {/* Logo Image */}
             <img 
-              src="/logo.png" 
+              src="/logo.jpg" 
               alt="Dine Offers" 
               className="w-12 h-12 rounded-full shadow-sm object-cover border border-gray-200" 
             />
