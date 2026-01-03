@@ -42,7 +42,7 @@ export default function SaveFoodPopup({ isOpen, onClose, onFindDeals }: Props) {
         <div className="bg-green-800 text-white text-center py-5 px-4 relative flex-shrink-0">
            <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
            <Leaf className="mx-auto mb-2 opacity-80" size={28} />
-           <h2 className="text-xl md:text-3xl font-serif font-bold tracking-wide">No Waste, More Taste</h2>
+           <h2 className="text-xl md:text-3xl font-serif font-bold tracking-wide">No Waste... More Tasty!!!</h2>
            <p className="text-green-100 text-[15px] tracking-widest mt-1">A <span className="font-bold lowercase">browseqatar</span> Initiative</p>
         </div>
 
@@ -61,7 +61,7 @@ export default function SaveFoodPopup({ isOpen, onClose, onFindDeals }: Props) {
           </p>
           
           <p className="text-gray-800 text-sm leading-relaxed mb-4">
-            When you choose to <strong className="text-green-700">“Save food - no waste, more taste,”</strong> you’re not just enjoying a delicious meal—you’re honoring the farmers who grew it, the hands that prepared it, and the planet that sustains us. 
+            When you choose to <strong className="text-green-700">“Save food - No waste... More tasty!!!”</strong> you’re not just enjoying a delicious meal—you’re honoring the farmers who grew it, the hands that prepared it, and the planet that sustains us. 
           </p>
 
           <p className="text-gray-800 text-sm leading-relaxed mb-6">

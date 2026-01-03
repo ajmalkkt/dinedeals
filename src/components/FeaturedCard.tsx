@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function FeaturedCard({ 
-  title = "No Waste, More Tasty", 
+  title = "No Waste... More Tasty!!!", 
   subtitle = "Save Food Campaign. Join the movement to honor every meal.", 
   imageUrl,
   onTextClick
