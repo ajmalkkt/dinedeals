@@ -9,6 +9,7 @@ import EnquiryPopup from "./EnquiryPopup";
 import SecondaryNav from "./SecondaryNav";
 import FeaturedCard from "./FeaturedCard";
 import PopularBrands from "./PopularBrands";
+import SaveFoodPopup from "./SaveFoodPopup";
 
 // Hooks / Context
 import { useFavoritesContext } from "../contexts/FavoritesContext";
@@ -75,6 +76,8 @@ function Home() {
     locations: [] as string[],
     offerTypes: [] as string[],
   });
+   // ✅ New State for the Popup
+  const [isSaveFoodOpen, setSaveFoodOpen] = useState(false);
 
   // Refs for scrolling
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -225,6 +228,32 @@ function Home() {
     }
   };
 
+    // ✅ New Handler: Filter for 50% Savings
+  const handleFindBigSavings = () => {
+    setLoading(true);
+    
+    // 1. Filter Logic: Discounted is <= 50% of Original
+    // Example: Original 100, Discounted 50 -> (100-50)/100 = 0.5 (50%)
+    const bigSavings = offers.filter(offer => {
+       if(!offer.originalPrice || !offer.discountedPrice) return false;
+       const savings = (offer.originalPrice - offer.discountedPrice) / offer.originalPrice;
+       return savings >= 0.5; // 50% or more
+    });
+
+    setFilteredOffers(bigSavings);
+    
+    // 2. Close Popup
+    setSaveFoodOpen(false);
+
+    // 3. Update UI Text/Selection to show user what happened
+    setSearchQuery(""); 
+    setSelectedCategory("Super Savers (50%+)"); // Just visual feedback
+
+    // 4. Scroll to Grid
+    scrollToOffers();
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-background relative">
       
@@ -258,7 +287,9 @@ function Home() {
 
       <main className="container mx-auto px-2 py-3">
         <div className="mt-2">
-          <FeaturedCard />
+          <FeaturedCard 
+            onTextClick={() => setSaveFoodOpen(true)}
+          />
         </div>
         
         <PopularBrands 
@@ -312,7 +343,12 @@ function Home() {
           </div>
         </div>
       </footer>
-
+      {/* ✅ Add the Popup Component */}
+      <SaveFoodPopup 
+        isOpen={isSaveFoodOpen} 
+        onClose={() => setSaveFoodOpen(false)} 
+        onFindDeals={handleFindBigSavings}
+      />
       <EnquiryPopup open={enquiryOpen} onClose={() => setEnquiryOpen(false)} />
     </div>
   );
