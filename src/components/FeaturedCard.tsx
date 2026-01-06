@@ -16,7 +16,7 @@ export default function FeaturedCard({
   onTextClick
 }: Props) {
   return (
-    <section className="mb-3 w-full">
+    <section className="mb-1 w-full">
       <div 
         onClick={onTextClick} 
         className="w-full cursor-pointer group transition-transform hover:-translate-y-1 duration-300"

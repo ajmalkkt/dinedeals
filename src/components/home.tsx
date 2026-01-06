@@ -285,8 +285,8 @@ function Home() {
         />
       </div>
 
-      <main className="container mx-auto px-2 py-3">
-        <div className="mt-2">
+      <main className="container mx-auto px-2 py-1">
+        <div className="mt-0">
           <FeaturedCard 
             onTextClick={() => setSaveFoodOpen(true)}
           />

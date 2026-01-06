@@ -46,9 +46,9 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
   if (dataToRender.length === 0) return null;
 
   return (
-    <section className="mb-6">
+    <section className="mb-2">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3 px-1">
+      <div className="flex items-center gap-2 mb-1 px-1">
         <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
         <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
         {/* Optional: Add animated icon back if needed */}
@@ -78,7 +78,7 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
         */}
         <div
           ref={scrollRef}
-          className="flex items-center gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-hide snap-x"
+          className="flex items-center gap-4 overflow-x-auto pb-2 pt-1 px-1 scrollbar-hide snap-x"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Inline style to ensure hidden scrollbar
         >
           {dataToRender.map((src, i) => (
