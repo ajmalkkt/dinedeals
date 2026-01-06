@@ -13,18 +13,6 @@ interface Props {
   onCuisineSelect?: (cuisine: string | null, isSeach: boolean | false) => void; // can be null for "All Offers"
 }
 
-const cuisineList = [
-  { name: "Biryani", img: "/images/cuisines/Biryani.png" },
-  { name: "Chinese", img: "/images/cuisines/Chinese.png" },
-  { name: "Pizzas", img: "/images/cuisines/Pizza.png" },
-  { name: "Burgers", img: "/images/cuisines/burger.png" },
-  { name: "North Indian", img: "/images/cuisines/northindian.png" },
-  { name: "Momos", img: "/images/cuisines/Momos.png" },
-  { name: "Meals", img: "/images/cuisines/meals.png" },
-  { name: "Pure Veg", img: "/images/cuisines/PureVeg.png" },
-  { name: "Ice cream", img: "/images/cuisines/icecream.png" },
-];
-
 const categoryList = [
   "All Offers",
   "Malls",

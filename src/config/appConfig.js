@@ -27,7 +27,7 @@
 
 
 export const cuisineOptions = [
-  "All",
+  "Super Saver",
   "Qatari Dine",
   "Arabic Dishes",
   "Mandi",
@@ -53,7 +53,7 @@ export const cuisineOptions = [
   "Pakistani Food",
   "South Indian",
   "North Indian",
-  "Sadya"
+  "Sadya",
 ];
 
 export const cuisineLists = [

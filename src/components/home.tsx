@@ -228,30 +228,14 @@ function Home() {
     }
   };
 
-    // ✅ New Handler: Filter for 50% Savings
+  // ✅ New Handler: Filter for super saver/50% Savings
   const handleFindBigSavings = () => {
-    setLoading(true);
     
-    // 1. Filter Logic: Discounted is <= 50% of Original
-    // Example: Original 100, Discounted 50 -> (100-50)/100 = 0.5 (50%)
-    const bigSavings = offers.filter(offer => {
-       if(!offer.originalPrice || !offer.discountedPrice) return false;
-       const savings = (offer.originalPrice - offer.discountedPrice) / offer.originalPrice;
-       return savings >= 0.5; // 50% or more
-    });
-
-    setFilteredOffers(bigSavings);
-    
-    // 2. Close Popup
     setSaveFoodOpen(false);
-
     // 3. Update UI Text/Selection to show user what happened
-    setSearchQuery(""); 
-    setSelectedCategory("Super Savers (50%+)"); // Just visual feedback
-
-    // 4. Scroll to Grid
-    scrollToOffers();
-    setLoading(false);
+    //setSearchQuery(""); 
+    handleCuisineSelect("Super Saver", false); // seaech for super savers
+   
   };
 
   return (

@@ -48,7 +48,7 @@ import useAuth from "../auth/useAuth";
 import { getAuthToken } from '../auth/firebaseClient'; 
 
 // App Config
-import { cuisineLists, countryMap } from "../config/appConfig";
+import { cuisineOptions, countryMap } from "../config/appConfig";
 
 export default function ManageOffers() {
   const navigate = useNavigate();
@@ -590,8 +590,8 @@ export default function ManageOffers() {
                           <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
                           <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="">Select Cuisine</option>
-                            {cuisineLists.map((c) => (
-                              <option key={c.name} value={c.name}>{c.name}</option>
+                            {cuisineOptions.map((c) => (
+                              <option key={c} value={c}>{c}</option>
                             ))}
                           </select>
                        </div>
