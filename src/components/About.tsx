@@ -60,13 +60,14 @@ export default function AboutUs() {
             </button>
           </div>
 
-          <h1 className="text-3xl font-bold text-purple-700 mb-4 text-center">
-            About Us
+          <h1 className="text-lg md:text-2xl font-serif font-black text-green-900 leading-tight mb-1 group-hover:text-green-700 transition-colors text-center">
+            No Waste... More Tasty!!!
           </h1>
 
           <p className="text-gray-700 leading-relaxed mb-3 text-center">
             Welcome to <strong>BQ's Dine Offers</strong> — your go-to destination for
             the best dining offers and restaurant deals across the region.
+            <span className="font-semibold text-green-600"> Our primary moto is to reduce food wastage while saving money for you! </span>
           
             We connect food lovers with exclusive promotions, helping you
             discover great places to dine while enjoying amazing discounts.
