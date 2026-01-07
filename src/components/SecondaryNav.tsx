@@ -147,7 +147,7 @@ const SecondaryNav: React.FC<Props> = ({
           <div
             className={`w-14 h-14 flex items-center justify-center rounded-full shadow mb-1 text-base font-bold ${
               selectedCuisine === null
-                ? "bg-orange-500 text-blue ring-4 ring-blue-400"
+                ? "brand-gradient-bg text-blue ring-4 ring-blue-400"
                 : "bg-orange-100 text-gray-600 hover:bg-orange-100"
             }`}
           >

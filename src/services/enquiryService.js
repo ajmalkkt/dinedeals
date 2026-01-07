@@ -41,7 +41,7 @@ export async function updateEnquiryStatus(enquiryId, status, apiKey) {
 } 
 
 //send enquiry message
-export async function sendEnquiryMessage(details, email, phone) {
+export async function sendEnquiryMessage(details, userName, email, phone) {
   // if auth token is preent, include it
   const token = await getAuthToken();
   const response = await fetch(`${ENQUIRY_API_URL}`, {
@@ -50,7 +50,7 @@ export async function sendEnquiryMessage(details, email, phone) {
       "Content-Type": "application/json",
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ details, email, phone }),
+    body: JSON.stringify({ details, userName, email, phone }),
   });
   if (!response.ok) throw new Error("Failed to send enquiry message");
   return await response.json();

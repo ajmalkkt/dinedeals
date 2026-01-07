@@ -9,6 +9,7 @@ interface EnquiryPopupProps {
 
 const EnquiryPopup: React.FC<EnquiryPopupProps> = ({ open, onClose }) => {
   const [details, setDetails] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
@@ -18,6 +19,7 @@ const EnquiryPopup: React.FC<EnquiryPopupProps> = ({ open, onClose }) => {
   useEffect(() => {
     if (!open) {
       setDetails("");
+      setName("");
       setEmail("");
       setPhone("");
       setSent(false);
@@ -55,9 +57,10 @@ const EnquiryPopup: React.FC<EnquiryPopupProps> = ({ open, onClose }) => {
     setSending(true);
     setError("");
     try {
-      const res = await sendEnquiryMessage(details, email, phone);
+      const res = await sendEnquiryMessage(details, name, email, phone);
       setSent(true);
       setDetails("");
+      setName("");
       setEmail("");
       setPhone("");
     
@@ -96,6 +99,15 @@ const EnquiryPopup: React.FC<EnquiryPopupProps> = ({ open, onClose }) => {
         <div className="text-sm text-gray-600 mb-3">
           Please share your business enquiry details and contact information. We’ll get in touch with you soon.
         </div>
+
+        <input
+          type="name"
+          className="w-full border rounded p-2 mb-2"
+          placeholder="Your Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          disabled={sending || sent}
+        />
 
         <input
           type="email"
