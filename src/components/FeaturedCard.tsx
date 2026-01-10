@@ -43,7 +43,7 @@ export default function FeaturedCard({
           className="absolute -top-4 -right-2 md:-right-4 z-50 cursor-pointer group/btn"
         >
           <img 
-            src="/SuperSaver.jpg" // ⚠️ Ensure this image exists in your public folder
+            src="/supersaver.png" 
             alt="Super Saver Offer" 
             // Animate pulse gives the blinking effect. Hover stops it and scales up.
             className="w-15 h-20 md:w-20 md:h-20 object-contain drop-shadow-xl animate-pulse hover:animate-none hover:scale-110 rounded-full transition-transform duration-2000"
