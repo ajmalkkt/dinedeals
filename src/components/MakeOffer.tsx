@@ -1,11 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";   // ✅ Add this
-import { getInactiveOffers, activateOffers } from "../services/offerService";
+import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
-import { ArrowLeft } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Power, 
+  Calendar, 
+  Key, 
+  Search, 
+  CheckCircle, 
+  XCircle,
+  Loader2,
+} from "lucide-react";
 
+import { 
+  getInactiveOffers, 
+  activateOffers, 
+  getAllActiveOffers, 
+  inactivateOffers 
+} from "../services/offerService";
+
+// --- Types ---
 interface Offer {
   id: number;
   title: string;
@@ -16,25 +32,54 @@ interface Offer {
   ownerLogin?: string;
 }
 
+// --- Placeholder Services ---
+//const getActiveOffers = async (): Promise<Offer[]> => { return []; };
+//const inactivateOffers = async (payload: any) => { return Promise.resolve(); };
+
 export default function MakeOfferOnline() {
+  const navigate = useNavigate();
+
+  // --- Helper: Get Date 1 Week from Now ---
+  const getOneWeekFromNow = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date;
+  };
+
+  // --- State ---
+  const [activeTab, setActiveTab] = useState<'activate' | 'deactivate'>('activate');
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedOffers, setSelectedOffers] = useState<number[]>([]);
-  const [validTo, setValidTo] = useState<Date | null>(null);
+  
+  // Form Inputs (Default Date set to +7 Days)
+  const [validTo, setValidTo] = useState<Date | null>(getOneWeekFromNow());
   const [apiKey, setApiKey] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // ✅ Add navigate hook
+  const [filterText, setFilterText] = useState("");
+  
+  // Loading States
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // --- Effects ---
   useEffect(() => {
-    fetchInactiveOffers();
-  }, []);
+    fetchData();
+    setSelectedOffers([]);
+    setFilterText("");
+  }, [activeTab]);
 
-  const fetchInactiveOffers = async () => {
+  // --- Handlers ---
+  const fetchData = async () => {
+    setIsLoadingData(true);
     try {
-      const result = await getInactiveOffers();
-      setOffers(result);
+      const data = activeTab === 'activate' 
+        ? await getInactiveOffers() 
+        : await getAllActiveOffers();
+      setOffers(data || []);
     } catch (err) {
-      console.error("Error loading inactive offers:", err);
-      toast.error("Failed to load offers");
+      console.error(`Error loading ${activeTab} offers:`, err);
+      toast.error(`Failed to load ${activeTab} offers`);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -44,153 +89,293 @@ export default function MakeOfferOnline() {
     );
   };
 
-  const handleSubmit = async () => {
-    if (!apiKey.trim()) {
-      toast.warning("Please enter your key before submitting.");
-      return;
-    }
-    if (selectedOffers.length === 0) {
-      toast.warning("Please select at least one offer to activate.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await activateOffers({
-        offerIds: selectedOffers,
-        validTill: validTo ? validTo.toISOString().split("T")[0] : undefined,
-        apiKey,
-      });
-      toast.success("Offers activated successfully!");
+  const handleSelectAll = () => {
+    if (selectedOffers.length === filteredOffers.length) {
       setSelectedOffers([]);
-      setValidTo(null);
-      setApiKey("");
-      fetchInactiveOffers();
-    } catch (err) {
-      console.error("Error activating offers:", err);
-      toast.error("Failed to activate offers: " + err.message);
-    } finally {
-      setLoading(false);
+    } else {
+      setSelectedOffers(filteredOffers.map(o => o.id));
     }
   };
 
+  const handleSubmit = async () => {
+    if (!apiKey.trim()) {
+      toast.warning("Please enter your API Key.");
+      return;
+    }
+    if (selectedOffers.length === 0) {
+      toast.warning(`Please select at least one offer.`);
+      return;
+    }
+    if (activeTab === 'activate' && !validTo) {
+      toast.warning("Please select a new expiry date.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (activeTab === 'activate') {
+        await activateOffers({
+          offerIds: selectedOffers,
+          validTill: validTo ? validTo.toISOString().split("T")[0] : undefined,
+          apiKey,
+        });
+        toast.success("Offers activated successfully!");
+      } else {
+        await inactivateOffers({
+          offerIds: selectedOffers,
+          apiKey,
+        });
+        toast.success("Offers deactivated successfully!");
+      }
+
+      setSelectedOffers([]);
+      // Reset date to one week ahead again
+      setValidTo(getOneWeekFromNow());
+      setApiKey("");
+      fetchData();
+    } catch (err: any) {
+      console.error("Operation failed:", err);
+      toast.error(`Failed: ${err.message || "Unknown error"}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredOffers = offers.filter(offer => 
+    offer.title.toLowerCase().includes(filterText.toLowerCase()) || 
+    offer.restaurantId.toString().includes(filterText) ||
+    (offer.ownerLogin && offer.ownerLogin.toLowerCase().includes(filterText.toLowerCase()))
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-4">
-      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6 border border-gray-200">
-        
-        {/* ✅ Back Button */}
-        {/* Back button */}
-        <div className="flex items-center justify-between mb-2">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
-          <ArrowLeft size={20} /> <span className="font-semibold">Back to Home</span>
-        </button>
-        </div>
-
-        <h1 className="text-2xl font-bold text-purple-700 mb-4">
-          Make Your Offer Online
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Select inactive or expired offers, set a new expiry date, and activate them instantly.
-        </p>
-
-        <form
-        onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-        }}
-        >
-        {/* Offer Multi-Select */}
-        <div className="mb-4">
-            <label className="block font-medium text-gray-700 mb-1">
-            Select Offers
-            </label>
-            <div className="border border-gray-300 rounded-md p-3 max-h-60 overflow-y-auto">
-            {offers.length === 0 && (
-                <p className="text-gray-500 text-sm">No inactive offers found.</p>
-            )}
-            {offers.map((offer) => (
-                <label
-                key={offer.id}
-                className="flex items-center gap-2 py-1 border-b border-gray-100 last:border-none"
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      
+      {/* --- Responsive Header --- */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm shrink-0 z-20">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+            
+            <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => navigate("/")} 
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600 flex-shrink-0"
+                  title="Back to Home"
                 >
-                <input
-                    type="checkbox"
-                    checked={selectedOffers.includes(offer.id)}
-                    onChange={() => handleSelectOffer(offer.id)}
-                />
-                <span className="text-sm text-gray-700">
-                    #{offer.id} — {offer.title} from Restaurant {offer.restaurantId} Owner: {offer.ownerLogin}{" "}
-                    <span className="text-gray-500 text-xs">
-                    (Valid till: {offer.validTo ? offer.validTo.split("T")[0] : "N/A"})
-                    </span>
-                </span>
-                </label>
-            ))}
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="leading-tight">
+                  <h1 className="text-lg md:text-xl font-bold text-gray-800">Offer Management</h1>
+                </div>
+            </div>
+            
+            <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-auto">
+                <button
+                    onClick={() => setActiveTab('activate')}
+                    className={`flex-1 md:flex-none justify-center px-4 py-1.5 text-sm font-semibold rounded-md transition-all flex items-center gap-2 ${
+                        activeTab === 'activate' 
+                        ? "bg-white text-green-700 shadow-sm" 
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                >
+                    <Power size={14} /> Activate
+                </button>
+                <button
+                    onClick={() => setActiveTab('deactivate')}
+                    className={`flex-1 md:flex-none justify-center px-4 py-1.5 text-sm font-semibold rounded-md transition-all flex items-center gap-2 ${
+                        activeTab === 'deactivate' 
+                        ? "bg-white text-red-600 shadow-sm" 
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                >
+                    <XCircle size={14} /> Inactivate
+                </button>
             </div>
         </div>
-
-        {/* ValidTo */}
-        <div className="mb-4">
-            <label className="block font-medium text-gray-700 mb-1">
-            New Expiry Date
-            </label>
-            <DatePicker
-            selected={validTo}
-            onChange={(date: Date | null) => setValidTo(date ?? new Date())}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            placeholderText="Select date"
-            dateFormat="yyyy-MM-dd"
-            />
-        </div>
-
-        {/* API Key */}
-        <div className="mb-6">
-            <label className="block font-medium text-gray-700 mb-1">
-            Your Key (required)
-            </label>
-            <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            placeholder="Enter your key"
-            />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-between items-center">
-            <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition"
-            >
-            ← Back to Home
-            </button>
-
-            <button
-            type="submit"
-            disabled={loading}
-            className={`px-5 py-2 rounded-md text-white font-semibold ${
-                loading ? "bg-gray-400" : "bg-purple-600 hover:bg-purple-700"
-            }`}
-            >
-            {loading ? "Activating..." : "Activate Selected Offers"}
-            </button>
-        </div>
-        </form>
       </div>
-      <footer className="bg-muted py-6 px-4 mt-8">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <div className="flex items-center justify-center gap-3">
-            <p className="m-0">© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
-            <span className="text-muted-foreground">|</span>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <img src={'/meraki.webp'} alt="Meraki AI" className="w-6 h-6 object-contain" />
-              <span>Powered by MerakiAi</span>
+
+      {/* --- Main Content (Scrollable Area) --- */}
+      <main className="flex-1 w-full max-w-5xl mx-auto p-2 md:p-6 overflow-hidden flex flex-col">
+        
+        {/* Card Container - Flex Column to manage internal scroll */}
+        <div className="bg-white shadow-md rounded-xl border border-gray-200 flex flex-col h-full overflow-hidden">
+            
+            {/* Toolbar */}
+            <div className="p-3 md:p-4 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-gray-50/50 shrink-0">
+                <div className="flex items-center justify-between gap-2">
+                    <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${activeTab === 'activate' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {activeTab === 'activate' ? 'Inactive' : 'Active'}
+                    </span>
+                    <span className="text-xs md:text-sm text-gray-500">
+                        {filteredOffers.length} found
+                    </span>
+                </div>
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input 
+                        type="text" 
+                        placeholder="Search..." 
+                        className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
+                    />
+                </div>
             </div>
-          </div>
+
+            {/* 
+                TABLE CONTAINER 
+                1. flex-1: Takes available height
+                2. min-h-0: CRITICAL for flexbox scrolling to work
+                3. overflow-auto: Enables X and Y scroll
+            */}
+            <div className="flex-1 min-h-0 overflow-auto relative w-full">
+                {isLoadingData ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2 absolute inset-0">
+                        <Loader2 className="animate-spin" size={30} />
+                        <span className="text-sm">Loading data...</span>
+                    </div>
+                ) : filteredOffers.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-2 absolute inset-0">
+                        <Search size={40} className="opacity-20" />
+                        <p className="text-sm">No offers match your criteria.</p>
+                    </div>
+                ) : (
+                    /* 
+                        min-w-[700px] forces the table to be wider than mobile screen,
+                       triggering the horizontal scroll on the parent div.
+                    */
+                    <table className="w-full min-w-[700px] text-left text-sm border-collapse">
+                        <thead className="bg-gray-50 sticky top-0 z-20 border-b border-gray-200 text-gray-600 font-medium shadow-sm">
+                            <tr>
+                                {/* Sticky Checkbox Header */}
+                                <th className="px-4 py-3 w-10 sticky left-0 z-30 bg-gray-50 shadow-[1px_0_0_0_rgba(229,231,235,1)]">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                        checked={selectedOffers.length > 0 && selectedOffers.length === filteredOffers.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
+                                <th className="px-4 py-3">Offer Details</th>
+                                <th className="px-4 py-3 whitespace-nowrap">Restaurant</th>
+                                <th className="px-4 py-3 whitespace-nowrap">Owner</th>
+                                <th className="px-4 py-3 text-right whitespace-nowrap">Validity</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {filteredOffers.map((offer) => (
+                                <tr 
+                                    key={offer.id} 
+                                    className={`hover:bg-blue-50/50 transition-colors cursor-pointer ${selectedOffers.includes(offer.id) ? 'bg-blue-50' : ''}`}
+                                    onClick={() => handleSelectOffer(offer.id)}
+                                >
+                                    {/* 
+                                        Sticky Checkbox Cell
+                                        bg-white ensures content scrolling under it is hidden.
+                                    */}
+                                    <td className="px-4 py-3 sticky left-0 z-10 bg-white border-r border-gray-100 shadow-[1px_0_0_0_rgba(243,244,246,1)]">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectedOffers.includes(offer.id)}
+                                            readOnly 
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 pointer-events-none"
+                                        />
+                                    </td>
+
+                                    <td className="px-4 py-3 max-w-[200px]">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-gray-800 truncate" title={offer.title}>
+                                                #{offer.id} {offer.title}
+                                            </span>
+                                            <span className="text-xs text-gray-500 bg-gray-100 w-fit px-1.5 py-0.5 rounded mt-1">
+                                                {offer.cuisine || "General"}
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                        ID: {offer.restaurantId}
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                        {offer.ownerLogin || "N/A"}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-gray-500 font-mono text-xs whitespace-nowrap">
+                                        {offer.validTo ? offer.validTo.split("T")[0] : "No Expiry"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            {/* Footer Form */}
+            <div className="bg-gray-50 border-t border-gray-200 p-4 shrink-0 z-30">
+                <form 
+                    onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+                    className="flex flex-col gap-4"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {activeTab === 'activate' ? (
+                             <div>
+                                <label className="text-xs font-bold text-gray-600 mb-1 block uppercase">New Expiry</label>
+                                <div className="relative z-50"> 
+                                    {/* z-50 ensures datepicker pops over everything */}
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                                    <DatePicker
+                                        selected={validTo}
+                                        onChange={(date: Date | null) => setValidTo(date ?? new Date())}
+                                        className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                        placeholderText="Select date..."
+                                        dateFormat="yyyy-MM-dd"
+                                        minDate={new Date()}
+                                        wrapperClassName="w-full"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-red-500 flex items-center h-full pt-1 italic">
+                                * Offers will be removed from listing immediately.
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="text-xs font-bold text-gray-600 mb-1 block uppercase">Security Key</label>
+                            <div className="relative">
+                                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <input
+                                    type="password"
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="Enter Key"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || selectedOffers.length === 0}
+                        className={`w-full py-3 rounded-lg text-white font-bold shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2
+                            ${isSubmitting 
+                                ? "bg-gray-400 cursor-not-allowed" 
+                                : activeTab === 'activate' 
+                                    ? "bg-green-600 hover:bg-green-700" 
+                                    : "bg-red-600 hover:bg-red-700"
+                            }
+                        `}
+                    >
+                        {isSubmitting ? (
+                            <> <Loader2 className="animate-spin" size={18} /> Processing... </>
+                        ) : activeTab === 'activate' ? (
+                            <> <CheckCircle size={18} /> Activate ({selectedOffers.length}) </>
+                        ) : (
+                            <> <XCircle size={18} /> Inactivate ({selectedOffers.length}) </>
+                        )}
+                    </button>
+                </form>
+            </div>
         </div>
-      </footer>
+      </main>
     </div>
   );
 }

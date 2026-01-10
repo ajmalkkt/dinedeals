@@ -168,7 +168,30 @@ export async function activateOffers(payload) {
   return res.json();
 }
 
+//getAllActiveOffers
+export async function getAllActiveOffers() {
+  const res = await fetch(OFFERS_URL);
+  if (!res.ok) throw new Error("Failed to fetch active offers");
+  return res.json();
+}
 
+//inactivate offers
+export async function inactivateOffers(payload) {
+  const token = await getAdminAuthToken();
+  const res = await fetch(`${OFFERS_URL}/inactivate`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey,"Authorization": `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) { 
+    //extract the message field from response json
+    const errorData = await res.json();
+    const errorMessage = errorData.message || 'Failed to inactivate offers';
+    //console.error('[OfferService] inactivateOffers error details:', errorData);
+    throw new Error(errorMessage);
+  }
+  return res.json();
+}   
 
 // Get offer image URL
 export function getOfferImageUrl(id) {
