@@ -9,87 +9,139 @@ interface Props {
 
 export default function PopularBrands({ brands = [], onSelectRestaurant }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+  
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<String | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   // 1. Fetch Data
   useEffect(() => {
     if ((!brands || brands.length === 0) && restaurants.length === 0) {
-      getAllRestaurants().then((data) => setRestaurants(data || []));
+      getAllRestaurants().then((data) => {
+        setRestaurants(data || []);
+      });
     }
   }, [brands, restaurants.length]);
 
-  // 2. Handle Selection
+  const originalData = brands.length > 0 ? brands : restaurants;
+  
+  // 2. DUPLICATE DATA for Infinite Marquee Effect
+  // We double the array so when we reach the end of the first set, we can snap back to 0 seamlessly
+  const marqueeData = [...originalData, ...originalData];
+
+  // 3. INITIALIZE: Random Start Position
+  useEffect(() => {
+    if (originalData.length > 0 && scrollRef.current) {
+      // Small timeout to ensure images/layout are rendered for correct width calculation
+      setTimeout(() => {
+        const container = scrollRef.current;
+        if (container) {
+          // Calculate the width of one set of items (approx half the total scroll width)
+          const singleSetWidth = container.scrollWidth / 2;
+          
+          // Random starting position within the first set
+          const randomStart = Math.floor(Math.random() * singleSetWidth);
+          container.scrollLeft = randomStart;
+          
+          setIsReady(true); // Start animation only after setting position
+        }
+      }, 500);
+    }
+  }, [originalData.length]);
+
+  // 4. ANIMATION LOOP (The "Marquee" Engine)
+  useEffect(() => {
+    if (!isReady || originalData.length === 0) return;
+
+    const scrollContainer = scrollRef.current;
+    const speed = 0.5; // Adjust speed: 0.5 is slow/smooth, 1 is faster
+
+    const animate = () => {
+      if (scrollContainer && !isPaused) {
+        // Increment position
+        scrollContainer.scrollLeft += speed;
+
+        // INFINITE LOOP LOGIC:
+        // If we have scrolled past the first set (halfway point), snap back to 0
+        // -1 buffer helps prevent glitching on some screens
+        if (scrollContainer.scrollLeft >= (scrollContainer.scrollWidth / 2) - 1) {
+          scrollContainer.scrollLeft = 0;
+        }
+      }
+      // Request next frame
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    // Start the loop
+    animationRef.current = requestAnimationFrame(animate);
+
+    // Cleanup on unmount
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [isReady, isPaused, originalData.length]);
+
+  // 5. Handlers
   const handleRestaurantClick = (restaurantId: String) => {
-    // Toggle selection: if clicking same one, unselect (optional, or keep selected)
-    // setSelectedRestaurant(prev => prev === restaurantId ? null : restaurantId); 
-    
-    // Current logic: Always select
     setSelectedRestaurant(restaurantId);
     if (onSelectRestaurant) onSelectRestaurant(restaurantId);
   };
 
-  // 3. Simple Scroll Functions
-  const scroll = (direction: 'left' | 'right') => {
+  const scrollManual = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const { current } = scrollRef;
-      const scrollAmount = 200; // Pixel amount to scroll
-      current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
+      const amount = 200;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -amount : amount,
         behavior: 'smooth',
       });
     }
   };
 
-  const dataToRender = brands.length > 0 ? brands : restaurants;
-
-  if (dataToRender.length === 0) return null;
+  if (originalData.length === 0) return null;
 
   return (
-    <section className="mb-2">
-      {/* Header */}
+    <section 
+      className="mb-2"
+      // Pause on Hover (Desktop)
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      // Pause on Touch (Mobile)
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
       <div className="flex items-center gap-2 mb-1 px-1">
         <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
         <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
-        {/* Optional: Add animated icon back if needed */}
       </div>
 
       <div className="relative group">
         
-        {/* 
-           LEFT ARROW 
-           - Hidden on mobile (touch devices scroll naturally)
-           - Visible on Desktop (md:flex)
-           - Appears on hover (group-hover) or always visible depending on preference
-        */}
+        {/* Left Arrow (Manual Control) */}
         <button
-          onClick={() => scroll('left')}
-          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-full p-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30"
-          aria-label="Scroll left"
+          onClick={() => scrollManual('left')}
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-full p-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100"
         >
           <ChevronLeft size={20} />
         </button>
 
         {/* 
            SCROLL CONTAINER 
-           - overflow-x-auto: Enables native scrolling
-           - scrollbar-hide: Hides the ugly bar (needs CSS utility)
-           - snap-x: Aligns items nicely
+           - overflow-hidden (usually) or overflow-x-auto if you still want manual swipe
         */}
         <div
           ref={scrollRef}
-          className="flex items-center gap-4 overflow-x-auto pb-2 pt-1 px-1 scrollbar-hide snap-x"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} // Inline style to ensure hidden scrollbar
+          className="flex items-center gap-4 overflow-x-hidden pb-2 pt-1 px-1"
+          style={{ whiteSpace: 'nowrap' }} // Ensures items stay in one line
         >
-          {dataToRender.map((src, i) => (
+          {marqueeData.map((src, i) => (
             <div
-              key={i}
+              // Use index in key because items are duplicated, IDs won't be unique
+              key={`${src.id}-${i}`}
               onClick={() => handleRestaurantClick(src.id)}
-              className={`
-                snap-start flex-shrink-0 cursor-pointer flex flex-col items-center gap-2 transition-transform hover:scale-105
-              `}
+              className="flex-shrink-0 cursor-pointer flex flex-col items-center gap-2 transition-transform hover:scale-105"
             >
-              {/* Image Circle/Card */}
               <div
                 className={`
                   w-16 h-16 rounded-full bg-white flex items-center justify-center border-2 overflow-hidden shadow-sm
@@ -101,13 +153,12 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
               >
                 <img
                   src={src.brandUrl || src.logoUrl}
-                  alt={src.name || `brand-${i}`}
+                  alt={src.name}
                   className="w-12 h-12 object-contain"
                   loading="lazy"
                 />
               </div>
 
-              {/* Optional: Brand Name Label (makes it look more like a Nav) */}
               <span className={`text-xs font-medium truncate max-w-[70px] ${selectedRestaurant === src.id ? 'text-blue-600' : 'text-gray-600'}`}>
                 {src.name}
               </span>
@@ -115,11 +166,10 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
           ))}
         </div>
 
-        {/* RIGHT ARROW */}
+        {/* Right Arrow (Manual Control) */}
         <button
-          onClick={() => scroll('right')}
+          onClick={() => scrollManual('right')}
           className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 shadow-md rounded-full p-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100"
-          aria-label="Scroll right"
         >
           <ChevronRight size={20} />
         </button>

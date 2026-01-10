@@ -34,6 +34,7 @@ interface OfferCardProps {
   offer: Offer;
   restaurantName: string;
   restaurantAddress?: string;
+  restaurantPhone?: string;
   restaurantLogo: string;
   showOfferDetail?: boolean;
   showOfferAvatar?: boolean;
@@ -60,6 +61,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
   offer,
   restaurantName,
   restaurantAddress,
+  restaurantPhone,
   restaurantLogo,
   showOfferDetail = true,
   showOfferAvatar = true,
@@ -149,6 +151,9 @@ const OfferCard: React.FC<OfferCardProps> = ({
                     <span>{restaurantAddress}</span>
                   </>
                 )}
+                <span className="bg-muted text-xs px-2 py-1 rounded-full">
+                {restaurantPhone}
+                </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-xs text-muted-foreground">
@@ -238,6 +243,11 @@ const OffersGrid = ({
     return restaurant ? restaurant.address : "Unknown Restaurant";
   };
 
+  const getRestaurantPhone = (id: number): string => {
+    const restaurant = restaurants.find((r) => r.id === id);
+    return restaurant ? restaurant.phone : "N/A";
+  };
+
   const getRestaurantLogo = (id: number): string => {
     const restaurant = restaurants.find((r) => r.id === id);
     return (
@@ -290,6 +300,7 @@ const OffersGrid = ({
               offer={offer}
               restaurantName={restaurant ? restaurant.name : getRestaurantName(offer.restaurantId)}
               restaurantAddress={restaurant ? restaurant.address : getRestaurantAddress(offer.restaurantId)}
+              restaurantPhone={restaurant ? restaurant.phone : getRestaurantPhone(offer.restaurantId)}  
               restaurantLogo={getRestaurantLogo(offer.restaurantId)}
               showOfferDetail={showOfferDetail}
               showOfferAvatar={SHOW_OFFER_AVATAR}

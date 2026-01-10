@@ -158,6 +158,11 @@ function Home() {
     setFilteredOffers(result);
   }, [offers, filters, searchQuery, restaurantLookup, restaurants, selectedCountry, selectedCategory]);
 
+   // 1. Calculate if Super Saver exists
+  // We use useMemo so it doesn't recalculate on every scroll, only when 'offers' changes.
+  const hasSuperSaverOffers = useMemo(() => {
+    return offers.some((offer) => offer.cuisine === "Super Saver");
+  }, [offers]);
   // --- Handlers ---
 
   const handleSearch = (query: string) => {
@@ -273,6 +278,9 @@ function Home() {
         <div className="mt-0">
           <FeaturedCard 
             onTextClick={() => setSaveFoodOpen(true)}
+            onSuperSaverClick={() => handleCuisineSelect("Super Saver", false)}
+            // 2. Pass the calculated boolean
+            showSuperSaverButton={hasSuperSaverOffers}
           />
         </div>
         
