@@ -201,7 +201,8 @@ const OfferCard: React.FC<OfferCardProps> = ({
             {showOfferDetail && (
               <div className="mt-2 text-center">
                 <h3 className="font-semibold text-lg">{offer.title}</h3>
-                <p className="text-sm text-muted-foreground mb-1">{offer.description}</p>
+                <p className="text-sm text-muted-foreground mb-1">Address: {restaurantAddress}</p>
+                <p className="text-sm text-gray-800 mb-1">Phone: {restaurantPhone}</p>
               </div>
             )}
           </div>
