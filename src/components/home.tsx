@@ -76,8 +76,9 @@ function Home() {
     locations: [] as string[],
     offerTypes: [] as string[],
   });
-   // ✅ New State for the Popup
+  // ✅ New State for the Popup
   const [isSaveFoodOpen, setSaveFoodOpen] = useState(false);
+  const [sortOption, setSortOption] = useState("");
 
   // Refs for scrolling
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -155,10 +156,31 @@ function Home() {
         );
       });
     }
+
     setFilteredOffers(result);
   }, [offers, filters, searchQuery, restaurantLookup, restaurants, selectedCountry, selectedCategory]);
 
-   // 1. Calculate if Super Saver exists
+  const sortedOffers = useMemo(() => {
+    let sortable = [...filteredOffers];
+    const option = sortOption || "best-value"; // Default to best-value if empty
+
+    sortable.sort((a, b) => {
+      if (option === "price-asc") {
+        return a.discountedPrice - b.discountedPrice;
+      } else if (option === "price-desc") {
+        return b.discountedPrice - a.discountedPrice;
+      } else if (option === "best-value") {
+        // Sort by discount percentage descending
+        const discountA = (a.originalPrice - a.discountedPrice) / a.originalPrice;
+        const discountB = (b.originalPrice - b.discountedPrice) / b.originalPrice;
+        return discountB - discountA;
+      }
+      return 0;
+    });
+    return sortable;
+  }, [filteredOffers, sortOption]);
+
+  // 1. Calculate if Super Saver exists
   // We use useMemo so it doesn't recalculate on every scroll, only when 'offers' changes.
   const hasSuperSaverOffers = useMemo(() => {
     return offers.some((offer) => offer.cuisine === "Super Saver");
@@ -214,7 +236,7 @@ function Home() {
   const scrollToOffers = () => {
     setTimeout(() => {
       // 80px offset for the sticky header
-      const yOffset = -80; 
+      const yOffset = -80;
       const element = offersSectionRef.current;
       if (element) {
         const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -227,7 +249,7 @@ function Home() {
     // Scroll back up to the SecondaryNav
     if (categoriesRef.current) {
       // 90px offset so the Sticky TopHeader doesn't cover the categories
-      const yOffset = -90; 
+      const yOffset = -90;
       const y = categoriesRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
@@ -235,17 +257,17 @@ function Home() {
 
   // ✅ New Handler: Filter for super saver/50% Savings
   const handleFindBigSavings = () => {
-    
+
     setSaveFoodOpen(false);
     // 3. Update UI Text/Selection to show user what happened
     //setSearchQuery(""); 
     handleCuisineSelect("Super Saver", false); // seaech for super savers
-   
+
   };
 
   return (
     <div className="min-h-screen bg-background relative">
-      
+
       {/* 
          ✅ STICKY TOP HEADER ONLY 
          This stays fixed at the top. z-50 ensures it's above everything.
@@ -270,21 +292,21 @@ function Home() {
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
           onAddBusiness={() => setEnquiryOpen(true)}
-          onCuisineSelect={handleCuisineSelect} 
+          onCuisineSelect={handleCuisineSelect}
         />
       </div>
 
       <main className="container mx-auto px-2 py-1">
         <div className="mt-0">
-          <FeaturedCard 
+          <FeaturedCard
             onTextClick={() => setSaveFoodOpen(true)}
             onSuperSaverClick={() => handleCuisineSelect("Super Saver", false)}
             // 2. Pass the calculated boolean
             showSuperSaverButton={hasSuperSaverOffers}
           />
         </div>
-        
-        <PopularBrands 
+
+        <PopularBrands
           onSelectRestaurant={handleSelectRestaurant}
         />
 
@@ -295,11 +317,26 @@ function Home() {
         )}
 
         <section ref={offersSectionRef} className="mb-12">
-          <h2 className="font-bold brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold mb-1">
-            Hey, Enjoy your offers here...
-          </h2>
+          <div className="flex flex-row justify-between items-center mb-1 gap-4">
+            <h2 className="brand-gradient-bg text-white px-3 py-1 rounded-md text-sm font-semibold">
+              Enjoy your offers...
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="brand-gradient-bg text-white border-none rounded-md text-sm focus:ring-2 focus:ring-white/20 outline-none cursor-pointer py-1 px-2"
+              >
+                <option value="" disabled className="text-gray-500 bg-white">Sort By</option>
+                <option value="price-asc" className="text-gray-700 bg-white">Low to High</option>
+                <option value="best-value" className="text-gray-700 bg-white">Best Value</option>
+                <option value="price-desc" className="text-gray-700 bg-white">High to Low</option>
+              </select>
+            </div>
+          </div>
           <OffersGrid
-            offers={filteredOffers}
+            offers={sortedOffers}
             restaurants={restaurants}
             isLoading={loading}
             showOfferDetail={SHOW_OFFER_DETAIL}
@@ -336,9 +373,9 @@ function Home() {
         </div>
       </footer>
       {/* ✅ Add the Popup Component */}
-      <SaveFoodPopup 
-        isOpen={isSaveFoodOpen} 
-        onClose={() => setSaveFoodOpen(false)} 
+      <SaveFoodPopup
+        isOpen={isSaveFoodOpen}
+        onClose={() => setSaveFoodOpen(false)}
         onFindDeals={handleFindBigSavings}
       />
       <EnquiryPopup open={enquiryOpen} onClose={() => setEnquiryOpen(false)} />

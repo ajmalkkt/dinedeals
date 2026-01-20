@@ -10,7 +10,9 @@ interface Props {
 export default function PopularBrands({ brands = [], onSelectRestaurant }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const animationRef = useRef<number | null>(null);
-  
+  // Track precise scroll position (float) to fix rounding issues on some devices/browsers
+  const currentScrollPos = useRef<number>(0);
+
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState<String | null>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -26,28 +28,16 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
   }, [brands, restaurants.length]);
 
   const originalData = brands.length > 0 ? brands : restaurants;
-  
+
   // 2. DUPLICATE DATA for Infinite Marquee Effect
   // We double the array so when we reach the end of the first set, we can snap back to 0 seamlessly
   const marqueeData = [...originalData, ...originalData];
 
   // 3. INITIALIZE: Random Start Position
+  // 3. INITIALIZE: Start Ready
   useEffect(() => {
-    if (originalData.length > 0 && scrollRef.current) {
-      // Small timeout to ensure images/layout are rendered for correct width calculation
-      setTimeout(() => {
-        const container = scrollRef.current;
-        if (container) {
-          // Calculate the width of one set of items (approx half the total scroll width)
-          const singleSetWidth = container.scrollWidth / 2;
-          
-          // Random starting position within the first set
-          const randomStart = Math.floor(Math.random() * singleSetWidth);
-          container.scrollLeft = randomStart;
-          
-          setIsReady(true); // Start animation only after setting position
-        }
-      }, 500);
+    if (originalData.length > 0) {
+      setIsReady(true);
     }
   }, [originalData.length]);
 
@@ -56,18 +46,29 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
     if (!isReady || originalData.length === 0) return;
 
     const scrollContainer = scrollRef.current;
-    const speed = 0.5; // Adjust speed: 0.5 is slow/smooth, 1 is faster
+    const speed = 1; // Adjust speed: 0.5 is slow/smooth, 1 is faster
 
     const animate = () => {
-      if (scrollContainer && !isPaused) {
-        // Increment position
-        scrollContainer.scrollLeft += speed;
+      if (scrollContainer) {
+        if (!isPaused) {
+          // Increment position accumulator
+          currentScrollPos.current += speed;
 
-        // INFINITE LOOP LOGIC:
-        // If we have scrolled past the first set (halfway point), snap back to 0
-        // -1 buffer helps prevent glitching on some screens
-        if (scrollContainer.scrollLeft >= (scrollContainer.scrollWidth / 2) - 1) {
-          scrollContainer.scrollLeft = 0;
+          // INFINITE LOOP LOGIC:
+          // If we have scrolled past the first set (halfway point), snap back to 0
+          // We use the accumulator ref for logic to avoid rounding drift
+          if (currentScrollPos.current >= (scrollContainer.scrollWidth / 2)) {
+            currentScrollPos.current = 0;
+            scrollContainer.scrollLeft = 0;
+          } else {
+            // Apply to DOM
+            scrollContainer.scrollLeft = currentScrollPos.current;
+          }
+        } else {
+          // PAUSED: Sync ref with actual DOM scroll position
+          // This ensures that if the user scrolls manually (swipe or buttons),
+          // we resume from the new position instead of snapping back.
+          currentScrollPos.current = scrollContainer.scrollLeft;
         }
       }
       // Request next frame
@@ -102,7 +103,7 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
   if (originalData.length === 0) return null;
 
   return (
-    <section 
+    <section
       className="mb-2"
       // Pause on Hover (Desktop)
       onMouseEnter={() => setIsPaused(true)}
@@ -117,7 +118,7 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
       </div>
 
       <div className="relative group">
-        
+
         {/* Left Arrow (Manual Control) */}
         <button
           onClick={() => scrollManual('left')}
@@ -128,13 +129,24 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
 
         {/* 
            SCROLL CONTAINER 
-           - overflow-hidden (usually) or overflow-x-auto if you still want manual swipe
+           - overflow-x-auto allows native swipe on mobile
+           - we hide scrollbar via style
         */}
         <div
           ref={scrollRef}
-          className="flex items-center gap-4 overflow-x-hidden pb-2 pt-1 px-1"
-          style={{ whiteSpace: 'nowrap' }} // Ensures items stay in one line
+          className="flex items-center gap-4 overflow-x-auto pb-2 pt-1 px-1 no-scrollbar"
+          style={{
+            whiteSpace: 'nowrap',
+            scrollbarWidth: 'none', // Firefox
+            msOverflowStyle: 'none' // IE/Edge
+          }}
         >
+          {/* Hide scrollbar for Chrome/Safari/Opera */}
+          <style>{`
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           {marqueeData.map((src, i) => (
             <div
               // Use index in key because items are duplicated, IDs won't be unique
@@ -145,8 +157,8 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
               <div
                 className={`
                   w-16 h-16 rounded-full bg-white flex items-center justify-center border-2 overflow-hidden shadow-sm
-                  ${selectedRestaurant === src.id 
-                    ? "border-blue-600 ring-2 ring-blue-100 ring-offset-1" 
+                  ${selectedRestaurant === src.id
+                    ? "border-blue-600 ring-2 ring-blue-100 ring-offset-1"
                     : "border-gray-100 hover:border-blue-200"
                   }
                 `}
