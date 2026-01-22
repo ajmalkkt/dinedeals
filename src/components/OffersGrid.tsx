@@ -128,10 +128,10 @@ const OfferCard: React.FC<OfferCardProps> = ({
           {/* Share Button */}
           <button
             onClick={handleShare}
-            className="absolute top-14 left-2 bg-white/80 rounded-full p-2 hover:bg-white transition-colors"
+            className="absolute bottom-2 right-2 bg-white/80 rounded-full p-2 hover:bg-white transition-colors"
             title="Share Offer"
           >
-            <Share2 className="h-5 w-5 text-gray-600" />
+            <Share2 className="h-6 w-6 text-gray-600" />
           </button>
 
           {showOfferAvatar && (

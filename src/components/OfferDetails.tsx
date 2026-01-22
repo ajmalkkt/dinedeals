@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useParams, Link } from "react-router-dom";
 import { getOfferById } from "../services/offerService";
 import { getAllRestaurants } from "../services/restaurantService";
@@ -95,6 +96,14 @@ const OfferDetails = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
+            <Helmet>
+                <title>{offer.title} | Browse Qatar</title>
+                <meta property="og:title" content={offer.title} />
+                <meta property="og:description" content={offer.description} />
+                <meta property="og:image" content={offer.imageUrl.startsWith('http') ? offer.imageUrl : `${window.location.origin}${offer.imageUrl}`} />
+                <meta property="og:url" content={window.location.href} />
+                <meta name="twitter:card" content="summary_large_image" />
+            </Helmet>
             {/* Header / Nav */}
             <div className="bg-white shadow-sm sticky top-0 z-10">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
