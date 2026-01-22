@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { ZoomInIcon, ZoomOutIcon } from "@radix-ui/react-icons";
 import { Skeleton } from "./ui/skeleton";
-import { Calendar, MapPin, Heart } from "lucide-react";
+import { Calendar, MapPin, Heart, Share2 } from "lucide-react";
 import { SHOW_OFFER_AVATAR, SHOW_DISCOUNTED_PRICE } from "../config/appConfig";
+import { toast } from "react-toastify";
 
 interface Offer {
   id: number;
@@ -43,18 +44,18 @@ interface OfferCardProps {
 }
 
 const handleDirections = (restaurantAddress) => {
-    if (!restaurantAddress) return;
+  if (!restaurantAddress) return;
 
-    const address = encodeURIComponent(restaurantAddress);
-    
-    // Option 1: Open specifically in "Directions" mode (Current Location -> Destination)
-    const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+  const address = encodeURIComponent(restaurantAddress);
 
-    // Option 2: Open just the location pin
-    // const mapUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+  // Option 1: Open specifically in "Directions" mode (Current Location -> Destination)
+  const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
 
-    // Open in a new tab
-    window.open(mapUrl, '_blank', 'noopener,noreferrer');
+  // Option 2: Open just the location pin
+  // const mapUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+
+  // Open in a new tab
+  window.open(mapUrl, '_blank', 'noopener,noreferrer');
 };
 
 const OfferCard: React.FC<OfferCardProps> = ({
@@ -76,6 +77,19 @@ const OfferCard: React.FC<OfferCardProps> = ({
   // But for now, just single image per card
   const handleZoomIn = () => setZoom((z) => Math.min(z + 0.2, 3));
   const handleZoomOut = () => setZoom((z) => Math.max(z - 0.2, 0.5));
+
+  const handleShare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/offer/${offer.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Link copied!");
+    }).catch(err => {
+      console.error("Failed to copy link", err);
+      // Fallback or alternate UI could go here, but toast usually enough
+    });
+  };
+
   return (
     <>
       <div className="bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -110,6 +124,16 @@ const OfferCard: React.FC<OfferCardProps> = ({
               className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
             />
           </button>
+
+          {/* Share Button */}
+          <button
+            onClick={handleShare}
+            className="absolute top-14 left-2 bg-white/80 rounded-full p-2 hover:bg-white transition-colors"
+            title="Share Offer"
+          >
+            <Share2 className="h-5 w-5 text-gray-600" />
+          </button>
+
           {showOfferAvatar && (
             <div className="absolute bottom-2 left-2 bg-background/80 backdrop-blur-sm rounded-full p-1">
               <img
@@ -145,15 +169,15 @@ const OfferCard: React.FC<OfferCardProps> = ({
             </div>
             <div className="mb-1">
               {restaurantAddress && (
-                  <>
-                    <MapPin className="inline h-4 w-4 text-muted-foreground"
+                <>
+                  <MapPin className="inline h-4 w-4 text-muted-foreground"
                     onClick={() => handleDirections(restaurantAddress)} />
-                    <span>{restaurantAddress}</span>
-                  </>
-                )}
-                <span className="bg-muted text-xs px-2 py-1 rounded-full">
+                  <span>{restaurantAddress}</span>
+                </>
+              )}
+              <span className="bg-muted text-xs px-2 py-1 rounded-full">
                 {restaurantPhone}
-                </span>
+              </span>
             </div>
             <div className="flex justify-between items-center mt-1">
               <span className="text-xs text-muted-foreground">
@@ -171,7 +195,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
           <div className="bg-white rounded-lg shadow-lg p-2 max-w-lg w-full relative flex flex-col items-center" onClick={e => e.stopPropagation()}>
             <button
               className="absolute top-2 right-2 z-20 text-gray-600 hover:text-black text-xl font-bold bg-white/80 rounded-full w-8 h-8 flex items-center justify-center"
-              style={{boxShadow: '0 1px 4px rgba(0,0,0,0.08)'}}
+              style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
               onClick={e => { e.stopPropagation(); setShowModal(false); }}
               tabIndex={0}
               aria-label="Close"
@@ -179,7 +203,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
               &times;
             </button>
             <div className="flex items-center w-full relative justify-center">
-              <button className="text-2xl px-2 text-gray-400 hover:text-black" style={{visibility:'hidden'}} disabled>&lt;</button>
+              <button className="text-2xl px-2 text-gray-400 hover:text-black" style={{ visibility: 'hidden' }} disabled>&lt;</button>
               <div className="relative w-full flex justify-center">
                 <img
                   src={offer.imageUrl || "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800&q=80"}
@@ -187,7 +211,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
                   className="w-full h-auto max-h-[70vh] object-contain rounded"
                   style={{ transform: `scale(${zoom})`, transition: 'transform 0.2s' }}
                 />
-                <div className="absolute top-2 right-2 flex gap-2 bg-white/60 rounded-lg p-1 hover:bg-white/90 transition-colors" style={{backdropFilter:'blur(2px)'}}>
+                <div className="absolute top-2 right-2 flex gap-2 bg-white/60 rounded-lg p-1 hover:bg-white/90 transition-colors" style={{ backdropFilter: 'blur(2px)' }}>
                   <button className="p-1 rounded hover:bg-gray-300 text-gray-700" onClick={handleZoomOut} title="Zoom Out">
                     <ZoomOutIcon className="w-5 h-5" />
                   </button>
@@ -196,7 +220,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
                   </button>
                 </div>
               </div>
-              <button className="text-2xl px-2 text-gray-400 hover:text-black" style={{visibility:'hidden'}} disabled>&gt;</button>
+              <button className="text-2xl px-2 text-gray-400 hover:text-black" style={{ visibility: 'hidden' }} disabled>&gt;</button>
             </div>
             {showOfferDetail && (
               <div className="mt-2 text-center">
@@ -301,7 +325,7 @@ const OffersGrid = ({
               offer={offer}
               restaurantName={restaurant ? restaurant.name : getRestaurantName(offer.restaurantId)}
               restaurantAddress={restaurant ? restaurant.address : getRestaurantAddress(offer.restaurantId)}
-              restaurantPhone={restaurant ? restaurant.phone : getRestaurantPhone(offer.restaurantId)}  
+              restaurantPhone={restaurant ? restaurant.phone : getRestaurantPhone(offer.restaurantId)}
               restaurantLogo={getRestaurantLogo(offer.restaurantId)}
               showOfferDetail={showOfferDetail}
               showOfferAvatar={SHOW_OFFER_AVATAR}

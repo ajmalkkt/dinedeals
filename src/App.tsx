@@ -11,7 +11,8 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import AdminRoute from "./auth/AdminRoute";
 import LoginModal from "./components/LoginModal";
 import ManageOffers from "./components/ManageOffers";
-            
+import OfferDetails from "./components/OfferDetails";
+
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <LoginModal /> {/* Add this here, outside Routes */}
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/offer/:id" element={<OfferDetails />} />
             <Route path="/admin" element={<ProtectedRoute><AdminImageManager /></ProtectedRoute>} />
             <Route path="/about" element={<About />} />
             {/*<Route path="/login" element={<LoginPage />} /> */}
