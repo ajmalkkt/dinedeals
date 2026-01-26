@@ -135,6 +135,27 @@ export async function uploadBulkData(options = {}) {
     throw err;
   }
 }
+//deleteRestaurant  
+export async function deleteRestaurant(id, options = {}) {
+  try {
+    // 1. Merge the token into the headers
+    const token = await getAdminAuthToken();
+    const res = await fetch(`${RESTAURANTS_URL}/${id}`, {
+      method: "DELETE",
+      headers: {
+        ...(options.headers || {}), // pass x-api-token here
+        'Authorization': `Bearer ${token}`,
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
+      },
+    });
+    if (!res.ok) throw new Error("Failed to delete restaurant");
+    return await res.json();
+  } catch (err) {
+    console.error("[RestaurantService] deleteRestaurant error:", err);
+    throw err;
+  }
+}
 
 //Get the auth token for admin operations
 export async function getAdminAuthToken() {
