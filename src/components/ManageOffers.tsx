@@ -33,6 +33,7 @@ import {
   getAllOwnerRestaurants,
   uploadRestaurant,
   uploadBulkData,
+  deleteRestaurant, // New import
 } from "../services/restaurantService";
 import {
   getOffersByOwnerRestaurantId,
@@ -45,7 +46,7 @@ import { getEnquiries, updateEnquiryStatus } from "../services/enquiryService";
 
 // Auth Hook
 import useAuth from "../auth/useAuth";
-import { getAuthToken } from '../auth/firebaseClient'; 
+import { getAuthToken } from '../auth/firebaseClient';
 
 // App Config
 import { cuisineOptions, countryMap } from "../config/appConfig";
@@ -91,7 +92,7 @@ export default function ManageOffers() {
   const [msgTotalPages, setMsgTotalPages] = useState(1);
   const [loadingMessages, setLoadingMessages] = useState(false);
   // --------------------
-  
+
 
   // ===== Forms =====
   // Helper to get today's date in YYYY-MM-DD format
@@ -123,12 +124,12 @@ export default function ManageOffers() {
   // Filter restaurants based on user role and ownership
   const getFilteredRestaurants = (allRestaurants) => {
     if (!user) return [];
-    
+
     // Direct synchronous check
     if (user.role === "admin") {
       return allRestaurants;
     }
-    
+
     return allRestaurants.filter((r) => r.ownerLogin === user.email);
   };
 
@@ -138,7 +139,7 @@ export default function ManageOffers() {
     if (user.role === "admin") {
       return allOffers;
     }
-   
+
     return allOffers.filter((o) => o.ownerLogin === user.email);
   };
 
@@ -155,8 +156,8 @@ export default function ManageOffers() {
       getInactiveOffers()
         .then((data) => setInactiveOffers(data || []))
         .catch((err) => {
-            console.error("Failed to fetch inactive offers", err);
-            setInactiveOffers([]);
+          console.error("Failed to fetch inactive offers", err);
+          setInactiveOffers([]);
         });
     }
     // Fetch Messages when tab is switched
@@ -223,7 +224,7 @@ export default function ManageOffers() {
     try {
       await uploadRestaurant(formData, { headers: getAuthHeaders() });
       alert("Restaurant saved!");
-      setRestaurants(await getAllRestaurants());
+      setRestaurants(await getAllOwnerRestaurants());
       setForm({ id: "", name: "", address: "", phone: "", rating: "", cuisine: "", logo: null, brand: null, country: "Qatar" });
       setLogoPreview(null);
       setBrandPreview(null);
@@ -231,6 +232,28 @@ export default function ManageOffers() {
     } catch (err) { console.error(err); alert("Error saving restaurant"); }
     finally {
       setIsUploading(false); // <--- STOP LOADING
+    }
+  };
+
+  const handleDeleteRestaurant = async (id: string, name: string) => {
+    if (!apiKey) return alert("Please enter your Key in the top bar.");
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return;
+
+    setIsUploading(true);
+    try {
+      await deleteRestaurant(id, { headers: getAuthHeaders() });
+      setRestaurants(await getAllOwnerRestaurants());
+      // If the deleted restaurant was selected, clear selection
+      if (selectedRestaurant === id) {
+        setSelectedRestaurant("");
+        setOffers([]);
+      }
+      alert("Restaurant deleted successfully!");
+    } catch (err: any) {
+      console.error(err);
+      alert("Failed to delete restaurant: " + err.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -252,7 +275,7 @@ export default function ManageOffers() {
 
     const formData = new FormData();
     formData.append("restaurantId", selectedRestaurant);
-    
+
     // Populate cuisine with category value
     const offerData = { ...offerForm, cuisine: offerForm.category };
     Object.entries(offerData).forEach(([key, val]) => { if (val) formData.append(key, val); });
@@ -274,7 +297,7 @@ export default function ManageOffers() {
 
   const handleDeleteOffer = async (id) => {
     if (!apiKey) return alert("Please enter your Key.");
-    if(!window.confirm("Are you sure you want to delete this offer?")) return;
+    if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
       setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
@@ -296,7 +319,7 @@ export default function ManageOffers() {
   const handleResolveMessage = async (id) => {
     if (!apiKey) return alert("Please enter your Key.");
     if (!window.confirm("Mark this message as RESOLVED?")) return;
-    
+
     setIsUploading(true);
     try {
       await updateEnquiryStatus(id, "RESOLVED", apiKey);
@@ -323,11 +346,10 @@ export default function ManageOffers() {
   const renderSidebarItem = (id, icon, label) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-        activeTab === id
-          ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
-          : "text-gray-600 hover:bg-gray-50"
-      }`}
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${activeTab === id
+        ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+        : "text-gray-600 hover:bg-gray-50"
+        }`}
     >
       {icon}
       {isSidebarOpen && <span>{label}</span>}
@@ -336,13 +358,13 @@ export default function ManageOffers() {
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800">
-      
+
       {/* ===== Sidebar ===== */}
       <aside className={`bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${isSidebarOpen ? "w-64" : "w-20"}`}>
         <div className="h-16 flex items-center justify-center border-b border-gray-200">
-           {isSidebarOpen ? <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span> : <span className="text-xl font-bold text-blue-600">M</span>}
+          {isSidebarOpen ? <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span> : <span className="text-xl font-bold text-blue-600">M</span>}
         </div>
-        
+
         <nav className="flex-1 py-6 space-y-1">
           {renderSidebarItem("dashboard", <LayoutDashboard size={20} />, "Dashboard")}
           {renderSidebarItem("restaurants", <Store size={20} />, "Restaurants")}
@@ -364,7 +386,7 @@ export default function ManageOffers() {
 
       {/* ===== Main Content ===== */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        
+
         {/* ===== Top Header ===== */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
           <div className="flex items-center gap-4">
@@ -378,11 +400,11 @@ export default function ManageOffers() {
             {/* API Key Input (Styled as session context) */}
             <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-1.5 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
               <span className="text-xs font-bold text-red-400 mr-2">Your Key</span>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter session key..." 
+                placeholder="Enter session key..."
                 className="bg-transparent border-none outline-none text-sm w-32 text-gray-700 placeholder-gray-400"
               />
             </div>
@@ -404,48 +426,48 @@ export default function ManageOffers() {
 
         {/* ===== Scrollable Content Area ===== */}
         <main className="flex-1 overflow-y-auto p-6">
-          
+
           {/* --- DASHBOARD TAB --- */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Store size={24} /></div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Total Restaurants</p>
-                      <h3 className="text-2xl font-bold text-gray-800">{getFilteredRestaurants(restaurants).length}</h3>
-                    </div>
-                 </div>
-                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-green-100 text-green-600 rounded-lg"><Tag size={24} /></div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Offers Managed</p>
-                      <h3 className="text-2xl font-bold text-gray-800">{offers.length > 0 ? offers.length : 0}</h3>
-                    </div>
-                 </div>
-                 
-                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <div className="p-3 bg-purple-100 text-orange-600 rounded-lg"><EyeOff size={24} /></div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Inactive Offers</p>
-                      <h3 className="text-lg font-bold text-gray-800">{inactiveOffers.length? getFilteredOffers(inactiveOffers).length : "-"}</h3>
-                    </div>
-                 </div>
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Store size={24} /></div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Total Restaurants</p>
+                    <h3 className="text-2xl font-bold text-gray-800">{getFilteredRestaurants(restaurants).length}</h3>
+                  </div>
+                </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-green-100 text-green-600 rounded-lg"><Tag size={24} /></div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Offers Managed</p>
+                    <h3 className="text-2xl font-bold text-gray-800">{offers.length > 0 ? offers.length : 0}</h3>
+                  </div>
+                </div>
 
-               {/* Quick Actions */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
-                    <h3 className="text-xl font-bold mb-2">Manage Restaurants</h3>
-                    <p className="text-blue-100 mb-4 text-sm">Add, edit, or update branding for your partner restaurants.</p>
-                    <button onClick={() => setActiveTab('restaurants')} className="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">Go to Restaurants</button>
-                 </div>
-                 <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-6 text-white shadow-lg">
-                    <h3 className="text-xl font-bold mb-2">Offer Management</h3>
-                    <p className="text-slate-300 mb-4 text-sm">Create seasonal offers and manage pricing strategies.</p>
-                    <button onClick={() => setActiveTab('offers')} className="bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">Manage Offers</button>
-                 </div>
-               </div>
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 text-orange-600 rounded-lg"><EyeOff size={24} /></div>
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">Inactive Offers</p>
+                    <h3 className="text-lg font-bold text-gray-800">{inactiveOffers.length ? getFilteredOffers(inactiveOffers).length : "-"}</h3>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+                  <h3 className="text-xl font-bold mb-2">Manage Restaurants</h3>
+                  <p className="text-blue-100 mb-4 text-sm">Add, edit, or update branding for your partner restaurants.</p>
+                  <button onClick={() => setActiveTab('restaurants')} className="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition">Go to Restaurants</button>
+                </div>
+                <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-6 text-white shadow-lg">
+                  <h3 className="text-xl font-bold mb-2">Offer Management</h3>
+                  <p className="text-slate-300 mb-4 text-sm">Create seasonal offers and manage pricing strategies.</p>
+                  <button onClick={() => setActiveTab('offers')} className="bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition">Manage Offers</button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -454,7 +476,7 @@ export default function ManageOffers() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-800">All Restaurants</h3>
-                <button 
+                <button
                   onClick={() => setShowAddRestaurantForm(!showAddRestaurantForm)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium transition shadow-sm"
                 >
@@ -469,20 +491,20 @@ export default function ManageOffers() {
                   <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">New Restaurant Details</h4>
                   <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Restaurant Name *</label>
-                       <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Burger King" required />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Restaurant Name *</label>
+                      <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Burger King" required />
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
-                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Doha, West Bay" required />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
+                      <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Doha, West Bay" required />
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Phone</label>
-                       <input name="phone" type="tel" value={form.phone} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="+974 1234 5678" />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Phone</label>
+                      <input name="phone" type="tel" value={form.phone} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="+974 1234 5678" />
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
-                       <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Indian, Arabic,..." />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
+                      <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Indian, Arabic,..." />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
@@ -498,14 +520,14 @@ export default function ManageOffers() {
                         </select>
                       </div>
                     </div>
-                    
+
                     {/* File Inputs Styled */}
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                         <Paperclip size={14} /> Logo Image *
-                       </label>
-                       <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
-                       {logoPreview && <img src={logoPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
+                      <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                        <Paperclip size={14} /> Logo Image *
+                      </label>
+                      <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
+                      {logoPreview && <img src={logoPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
                     </div>
 
                     <div className="col-span-full pt-4">
@@ -520,10 +542,17 @@ export default function ManageOffers() {
               {/* Restaurant List Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getFilteredRestaurants(restaurants).map((r) => (
-                  <div key={r.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+                  <div key={r.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition group">
                     <div className="h-24 bg-gray-100 flex items-center justify-center relative">
                       {/* Placeholder for Brand Image if available, else pattern */}
-                      <div className="absolute inset-0 opacity-10 bg-blue-600 pattern-grid-lg"></div> 
+                      <div className="absolute inset-0 opacity-10 bg-blue-600 pattern-grid-lg"></div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteRestaurant(r.id, r.name); }}
+                        className="absolute top-2 right-2 p-2 bg-white/90 text-red-500 rounded-full shadow-sm hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                        title="Delete Restaurant"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                     <div className="px-5 pb-5 -mt-10 relative z-10">
                       <img src={r.logoUrl || "https://via.placeholder.com/150"} alt={r.name} className="h-20 w-20 rounded-lg border-4 border-white shadow bg-white object-contain" />
@@ -531,8 +560,8 @@ export default function ManageOffers() {
                         <h4 className="font-bold text-lg text-gray-800">{r.name}</h4>
                         <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><Store size={14} /> {r.address}</p>
                         <div className="flex flex-wrap gap-2 mt-3">
-                           <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">{r.cuisine || "General"}</span>
-                           <span className="text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded border border-yellow-100">★ {r.rating || "N/A"}</span>
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-100">{r.cuisine || "General"}</span>
+                          <span className="text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded border border-yellow-100">★ {r.rating || "N/A"}</span>
                         </div>
                       </div>
                       <button onClick={() => { setSelectedRestaurant(r.id); setActiveTab("offers"); }} className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 rounded-lg border border-gray-200 text-sm font-medium transition">
@@ -548,205 +577,205 @@ export default function ManageOffers() {
           {/* --- OFFERS TAB --- */}
           {activeTab === "offers" && (
             <div className="space-y-6">
-               {/* Filter Bar */}
-               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center justify-between">
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Store size={20} /></div>
-                    <div className="flex-1">
-                      <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
-                      <select 
-                        value={selectedRestaurant} 
-                        onChange={handleSelectRestaurant} 
-                        className="bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2"
-                      >
-                        <option value="">-- Choose a Restaurant --</option>
-                        {getFilteredRestaurants(restaurants).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+              {/* Filter Bar */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Store size={20} /></div>
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
+                    <select
+                      value={selectedRestaurant}
+                      onChange={handleSelectRestaurant}
+                      className="bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2"
+                    >
+                      <option value="">-- Choose a Restaurant --</option>
+                      {getFilteredRestaurants(restaurants).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {selectedRestaurant && (
+                  <button
+                    onClick={() => setShowAddOfferForm(!showAddOfferForm)}
+                    className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
+                  >
+                    {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
+                    {showAddOfferForm ? "Cancel" : "Add New Offer"}
+                  </button>
+                )}
+              </div>
+
+              {/* Add Offer Form */}
+              {showAddOfferForm && selectedRestaurant && (
+                <div className="bg-white p-6 rounded-xl shadow border border-green-100">
+                  <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
+                  <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Fields reused from logic, styled better */}
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Offer Title</label>
+                      <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Arabic Mandi" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
+                      <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Select Cuisine</option>
+                        {cuisineOptions.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
                       </select>
                     </div>
-                  </div>
-                  
-                  {selectedRestaurant && (
-                    <button 
-                      onClick={() => setShowAddOfferForm(!showAddOfferForm)}
-                      className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
-                    >
-                      {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
-                      {showAddOfferForm ? "Cancel" : "Add New Offer"}
-                    </button>
-                  )}
-               </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Offer Type</label>
+                      <select name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="w-full border p-2 rounded-lg">
+                        <option value="All">All</option>
+                        <option value="Buffet">Buffet</option>
+                        <option value="Combo">Combo</option>
+                        <option value="Happy Hour">Happy Hour</option>
+                        <option value="Special">Special</option>
+                        <option value="Catering">Catering</option>
+                        <option value="Discount">Discount</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Original Price</label>
+                      <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Discounted Price</label>
+                      <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                        <Paperclip size={14} />
+                        Offer Image *
+                      </label>
+                      <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" required />
+                      {offerPreview && <img src={offerPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Valid From</label>
+                      <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Valid To</label>
+                      <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    </div>
+                    <div className="md:col-span-3 space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Description</label>
+                      <textarea name="description" rows={2} value={offerForm.description} onChange={handleOfferFormChange} className="w-full border p-2 rounded-lg" />
+                    </div>
+                    <div className="md:col-span-3">
+                      <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full md:w-auto">Upload Offer</button>
+                    </div>
+                  </form>
+                </div>
+              )}
 
-               {/* Add Offer Form */}
-               {showAddOfferForm && selectedRestaurant && (
-                 <div className="bg-white p-6 rounded-xl shadow border border-green-100">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
-                    <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                       {/* Fields reused from logic, styled better */}
-                       <div className="md:col-span-2 space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Offer Title</label>
-                          <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Arabic Mandi" required  />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
-                          <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="">Select Cuisine</option>
-                            {cuisineOptions.map((c) => (
-                              <option key={c} value={c}>{c}</option>
-                            ))}
-                          </select>
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Offer Type</label>
-                          <select name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="w-full border p-2 rounded-lg">
-                             <option value="All">All</option>
-                             <option value="Buffet">Buffet</option>
-                             <option value="Combo">Combo</option>
-                             <option value="Happy Hour">Happy Hour</option>
-                             <option value="Special">Special</option>
-                             <option value="Catering">Catering</option>
-                             <option value="Discount">Discount</option>
-                          </select>
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Original Price</label>
-                          <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required  />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Discounted Price</label>
-                          <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required  />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                             <Paperclip size={14} />
-                             Offer Image *
-                          </label>
-                          <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" required/>
-                          {offerPreview && <img src={offerPreview} alt="Preview" className="h-10 w-10 rounded-full object-cover border mt-2" />}
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Valid From</label>
-                          <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Valid To</label>
-                          <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" required />
-                       </div>
-                       <div className="md:col-span-3 space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Description</label>
-                          <textarea name="description" rows={2} value={offerForm.description} onChange={handleOfferFormChange} className="w-full border p-2 rounded-lg" />
-                       </div>
-                       <div className="md:col-span-3">
-                          <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full md:w-auto">Upload Offer</button>
-                       </div>
-                    </form>
-                 </div>
-               )}
-
-               {/* Offers Display */}
-               {!selectedRestaurant ? (
-                 <div className="text-center py-20 text-gray-400">
-                   <Store size={48} className="mx-auto mb-4 opacity-20" />
-                   <p>Please select a restaurant to view or manage offers.</p>
-                 </div>
-               ) : offers.length === 0 ? (
-                 <div className="text-center py-20 text-gray-400">
-                   <Tag size={48} className="mx-auto mb-4 opacity-20" />
-                   <p>No offers found. Create one above!</p>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                   {getFilteredOffers(offers).map((o) => (
-                     <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition group">
-                        <div className="relative h-40">
-                          <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
-                          <div className="absolute top-2 right-2 flex gap-1">
-                             <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
-                               <Trash2 size={14} />
-                             </button>
-                          </div>
-                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                            {o.offerType || "Discount"}
-                          </div>
+              {/* Offers Display */}
+              {!selectedRestaurant ? (
+                <div className="text-center py-20 text-gray-400">
+                  <Store size={48} className="mx-auto mb-4 opacity-20" />
+                  <p>Please select a restaurant to view or manage offers.</p>
+                </div>
+              ) : offers.length === 0 ? (
+                <div className="text-center py-20 text-gray-400">
+                  <Tag size={48} className="mx-auto mb-4 opacity-20" />
+                  <p>No offers found. Create one above!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {getFilteredOffers(offers).map((o) => (
+                    <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition group">
+                      <div className="relative h-40">
+                        <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                        <div className="absolute top-2 right-2 flex gap-1">
+                          <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
+                            <Trash2 size={14} />
+                          </button>
                         </div>
-                        <div className="p-4">
-                          <h5 className="font-bold text-gray-800 line-clamp-1" title={o.title}>{o.title}</h5>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{o.description}</p>
-                          <div className="mt-3 flex items-end gap-2">
-                             <span className="text-lg font-bold text-green-600">{o.discountedPrice} QAR</span>
-                             {o.originalPrice && <span className="text-xs text-gray-400 line-through mb-1">{o.originalPrice} QAR</span>}
-                          </div>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {o.offerType || "Discount"}
                         </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
+                      </div>
+                      <div className="p-4">
+                        <h5 className="font-bold text-gray-800 line-clamp-1" title={o.title}>{o.title}</h5>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{o.description}</p>
+                        <div className="mt-3 flex items-end gap-2">
+                          <span className="text-lg font-bold text-green-600">{o.discountedPrice} QAR</span>
+                          {o.originalPrice && <span className="text-xs text-gray-400 line-through mb-1">{o.originalPrice} QAR</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* --- INACTIVE OFFERS TAB (New) --- */}
           {activeTab === "inactive" && (
             <div className="space-y-4 md:space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <EyeOff size={24} className="text-orange-500" />
-                    Inactive / Under Review
-                  </h3>
-                </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <EyeOff size={24} className="text-orange-500" />
+                  Inactive / Under Review
+                </h3>
+              </div>
 
-                {inactiveOffers.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                    <AlertCircle size={48} className="mb-4 opacity-30" />
-                    <p className="text-sm font-medium">No inactive offers found.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {getFilteredOffers(inactiveOffers).map((o, idx) => (
-                      <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
-                        {/* Placeholder Image Area */}
-                        {user?.role === "admin" ? (
-                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
-                            <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
-                          </div>
-                        ) : (
-                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
-                            <div className="bg-orange-100 text-orange-600 p-3 rounded-full mb-2">
-                              <AlertCircle size={24}  />
-                              </div>
-                              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
-                            </div>
-                        )}
-                        <div className="p-4 flex-1 flex flex-col">
-                          <div className="flex justify-between items-start mb-1">
-                              <h5 className="font-bold text-gray-800 line-clamp-1 flex-1 pr-2">{o.title}</h5>
-                              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">{o.cuisine || o.category || "General"}</span>
-                          </div>
-                          
-                          <div className="mt-3 space-y-2 text-xs text-gray-500 border-t border-gray-100 pt-3">
-                              <div className="flex justify-between">
-                                <span>Valid From:</span>
-                                <span className="font-medium text-gray-700">{formatDate(o.validFrom)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Valid To:</span>
-                                <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
-                              </div>
-                          </div>
-                          {/* ================= NEW LINK ADDED HERE ================= */}
-                          {user?.role === "admin" && <div className="mt-4 pt-3 border-t border-gray-100">
-                             <button 
-                               onClick={() => navigate('/make-offer', { state: { offer: o } })} 
-                               className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition"
-                             >
-                               Review & Activate <ExternalLink size={14} />
-                             </button>
-                          </div>
-                          }
-                          {/* ======================================================== */}
+              {inactiveOffers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <AlertCircle size={48} className="mb-4 opacity-30" />
+                  <p className="text-sm font-medium">No inactive offers found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {getFilteredOffers(inactiveOffers).map((o, idx) => (
+                    <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
+                      {/* Placeholder Image Area */}
+                      {user?.role === "admin" ? (
+                        <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                          <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
                         </div>
+                      ) : (
+                        <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                          <div className="bg-orange-100 text-orange-600 p-3 rounded-full mb-2">
+                            <AlertCircle size={24} />
+                          </div>
+                          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
+                        </div>
+                      )}
+                      <div className="p-4 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-1">
+                          <h5 className="font-bold text-gray-800 line-clamp-1 flex-1 pr-2">{o.title}</h5>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">{o.cuisine || o.category || "General"}</span>
+                        </div>
+
+                        <div className="mt-3 space-y-2 text-xs text-gray-500 border-t border-gray-100 pt-3">
+                          <div className="flex justify-between">
+                            <span>Valid From:</span>
+                            <span className="font-medium text-gray-700">{formatDate(o.validFrom)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Valid To:</span>
+                            <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
+                          </div>
+                        </div>
+                        {/* ================= NEW LINK ADDED HERE ================= */}
+                        {user?.role === "admin" && <div className="mt-4 pt-3 border-t border-gray-100">
+                          <button
+                            onClick={() => navigate('/make-offer', { state: { offer: o } })}
+                            className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition"
+                          >
+                            Review & Activate <ExternalLink size={14} />
+                          </button>
+                        </div>
+                        }
+                        {/* ======================================================== */}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {/* --- MESSAGES TAB (NEW) --- */}
@@ -758,7 +787,7 @@ export default function ManageOffers() {
                   Enquiries & Messages
                 </h3>
               </div>
-              
+
               {loadingMessages ? (
                 <div className="flex justify-center py-20">
                   <Loader2 className="animate-spin text-blue-500" size={32} />
@@ -812,7 +841,7 @@ export default function ManageOffers() {
                                     <p className="leading-relaxed">
                                       {msg.message}
                                     </p>
-                                    
+
                                     {/* Tooltip Arrow (Optional Visual Flair) */}
                                     <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
                                   </div>
@@ -823,10 +852,10 @@ export default function ManageOffers() {
                             </td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
-                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' :
                                   msg.status === 'IN_PROGRESS' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                                  msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
-                                  'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                    msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                                      'bg-blue-50 text-blue-700 border border-blue-200'}`}>
                                 {msg.status === 'RESOLVED' && <CheckCircle size={12} />}
                                 {msg.status === 'NEW' && <Clock size={12} />}
                                 {msg.status === 'SEND_FAILED' && <XCircle size={12} />}
@@ -842,7 +871,7 @@ export default function ManageOffers() {
                                   Mark Resolved
                                 </button>
                               )}
-                              </td>
+                            </td>
                             }
                           </tr>
                         ))}
@@ -873,13 +902,13 @@ export default function ManageOffers() {
               )}
             </div>
           )}
-          
+
           {/* --- BULK TAB --- */}
           {activeTab === "bulk" && (
             <div className="max-w-xl mx-auto mt-10">
               <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 text-center">
                 <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
-                   <UploadCloud size={32} />
+                  <UploadCloud size={32} />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">Bulk Data Import</h3>
                 <p className="text-gray-500 mb-8">Process large datasets directly from your source. Ensure your Key is set.</p>
@@ -894,14 +923,14 @@ export default function ManageOffers() {
 
         {/* ===== Footer ===== */}
         <footer className="bg-white border-t border-gray-200 py-4 px-6">
-           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
-              <p>© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
-              <div className="flex items-center gap-2">
-                <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
-                <span>Powered by</span>
-                <span className="font-medium text-slate-700">MerakiAi</span>
-              </div>
-           </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
+            <p>© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
+            <div className="flex items-center gap-2">
+              <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
+              <span>Powered by</span>
+              <span className="font-medium text-slate-700">MerakiAi</span>
+            </div>
+          </div>
         </footer>
       </div>
       {/* ===== FULL SCREEN SPINNER OVERLAY ===== */}
