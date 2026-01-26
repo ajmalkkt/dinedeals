@@ -30,12 +30,12 @@ import {
 
 // Mock Services (Keep your existing imports here)
 import {
-  getAllRestaurants,
+  getAllOwnerRestaurants,
   uploadRestaurant,
   uploadBulkData,
 } from "../services/restaurantService";
 import {
-  getOffersByRestaurantId,
+  getOffersByOwnerRestaurantId,
   uploadOffer,
   deleteOffer,
   getInactiveOffers, // Imported as requested
@@ -144,7 +144,7 @@ export default function ManageOffers() {
 
   // ===== Effects =====
   useEffect(() => {
-    getAllRestaurants().then(setRestaurants).catch(console.error);
+    getAllOwnerRestaurants().then(setRestaurants).catch(console.error);
   }, []);
 
   // Fetch inactive offers when tab is switched
@@ -238,7 +238,7 @@ export default function ManageOffers() {
     const id = e.target.value;
     setSelectedRestaurant(id);
     if (id) {
-      const data = await getOffersByRestaurantId(id);
+      const data = await getOffersByOwnerRestaurantId(id);
       setOffers(data);
     } else {
       setOffers([]);
@@ -262,7 +262,7 @@ export default function ManageOffers() {
     try {
       await uploadOffer(formData, { headers: getAuthHeaders() });
       alert("Offer uploaded!");
-      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
       setOfferForm({ title: "", description: "", cuisine: "", originalPrice: "", discountedPrice: "", offerType: "Discount", validFrom: getTodayDate(), validTo: getTomorrowDate(), location: "", country: "Qatar", category: "", image: null }); // Reset all fields with fresh dates
       if (offerInputRef.current) offerInputRef.current.value = "";
       setShowAddOfferForm(false);
@@ -277,7 +277,7 @@ export default function ManageOffers() {
     if(!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
-      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
     } catch (err) { console.error(err); alert("Error deleting offer:" + err.message); }
   };
 

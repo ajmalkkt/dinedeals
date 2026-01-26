@@ -30,12 +30,12 @@ import {
 
 // Services (Existing)
 import {
-  getAllRestaurants,
+  getAllOwnerRestaurants,
   uploadRestaurant,
   uploadBulkData,
 } from "../services/restaurantService";
 import {
-  getOffersByRestaurantId,
+  getOffersByOwnerRestaurantId,
   uploadOffer,
   deleteOffer,
   getInactiveOffers,
@@ -78,7 +78,7 @@ export default function ManageOffers() {
   const [selectedRestaurant, setSelectedRestaurant] = useState("");
   const [offers, setOffers] = useState([]);
   const [inactiveOffers, setInactiveOffers] = useState([]);
-  
+
   // -- Message States --
   const [messages, setMessages] = useState([]);
   const [msgPage, setMsgPage] = useState(1);
@@ -132,7 +132,7 @@ export default function ManageOffers() {
 
   // ===== Effects =====
   useEffect(() => {
-    getAllRestaurants().then(setRestaurants).catch(console.error);
+    getAllOwnerRestaurants().then(setRestaurants).catch(console.error);
   }, []);
 
   // Fetch inactive offers when tab is switched
@@ -141,11 +141,11 @@ export default function ManageOffers() {
       getInactiveOffers()
         .then((data) => setInactiveOffers(data || []))
         .catch((err) => {
-            console.error("Failed to fetch inactive offers", err);
-            setInactiveOffers([]);
+          console.error("Failed to fetch inactive offers", err);
+          setInactiveOffers([]);
         });
     }
-    
+
     // Fetch Messages when tab is switched
     if (activeTab === "messages") {
       fetchMessages(msgPage);
@@ -170,7 +170,7 @@ export default function ManageOffers() {
 
   useEffect(() => {
     if (activeTab === 'offers' && !selectedRestaurant && restaurants.length > 0) {
-       // Logic kept safe
+      // Logic kept safe
     }
   }, [activeTab, restaurants]);
 
@@ -214,7 +214,7 @@ export default function ManageOffers() {
     try {
       await uploadRestaurant(formData, { headers: getAuthHeaders() });
       alert("Restaurant saved!");
-      setRestaurants(await getAllRestaurants());
+      setRestaurants(await getAllOwnerRestaurants());
       setForm({ id: "", name: "", address: "", phone: "", rating: "", cuisine: "", logo: null, brand: null, country: "Qatar" });
       setLogoPreview(null);
       setBrandPreview(null);
@@ -227,7 +227,7 @@ export default function ManageOffers() {
     const id = e.target.value;
     setSelectedRestaurant(id);
     if (id) {
-      const data = await getOffersByRestaurantId(id);
+      const data = await getOffersByOwnerRestaurantId(id);
       setOffers(data);
     } else {
       setOffers([]);
@@ -241,7 +241,7 @@ export default function ManageOffers() {
 
     const formData = new FormData();
     formData.append("restaurantId", selectedRestaurant);
-    
+
     const offerData = { ...offerForm, cuisine: offerForm.category };
     Object.entries(offerData).forEach(([key, val]) => { if (val) formData.append(key, val); });
 
@@ -249,7 +249,7 @@ export default function ManageOffers() {
     try {
       await uploadOffer(formData, { headers: getAuthHeaders() });
       alert("Offer uploaded!");
-      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
       setOfferForm({ title: "", description: "", cuisine: "", originalPrice: "", discountedPrice: "", offerType: "Discount", validFrom: getTodayDate(), validTo: getTomorrowDate(), location: "", country: "Qatar", category: "", image: null });
       if (offerInputRef.current) offerInputRef.current.value = "";
       setShowAddOfferForm(false);
@@ -260,10 +260,10 @@ export default function ManageOffers() {
 
   const handleDeleteOffer = async (id) => {
     if (!apiKey) return alert("Please enter your Key.");
-    if(!window.confirm("Are you sure you want to delete this offer?")) return;
+    if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
-      setOffers(await getOffersByRestaurantId(selectedRestaurant));
+      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
     } catch (err) { console.error(err); alert("Error deleting offer:" + err.message); }
   };
 
@@ -281,7 +281,7 @@ export default function ManageOffers() {
   const handleResolveMessage = async (id) => {
     if (!apiKey) return alert("Please enter your Key.");
     if (!window.confirm("Mark this message as RESOLVED?")) return;
-    
+
     setIsUploading(true);
     try {
       await updateEnquiryStatus(id, "RESOLVED", apiKey);
@@ -309,11 +309,10 @@ export default function ManageOffers() {
   const renderSidebarItem = (id, icon, label) => (
     <button
       onClick={() => handleTabChange(id)}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-        activeTab === id
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${activeTab === id
           ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
           : "text-gray-600 hover:bg-gray-50"
-      }`}
+        }`}
     >
       {icon}
       <span>{label}</span>
@@ -322,17 +321,17 @@ export default function ManageOffers() {
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans text-slate-800 overflow-hidden">
-      
+
       {/* ===== Mobile Sidebar Overlay ===== */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       {/* ===== Sidebar ===== */}
-      <aside 
+      <aside
         className={`
           fixed md:relative inset-y-0 left-0 z-50 bg-white border-r border-gray-200 
           transition-all duration-300 flex flex-col
@@ -341,16 +340,16 @@ export default function ManageOffers() {
         `}
       >
         <div className="h-16 flex items-center justify-between px-4 md:justify-center border-b border-gray-200">
-           {isSidebarOpen || isMobileMenuOpen ? (
-             <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span>
-           ) : (
-             <span className="text-xl font-bold text-blue-600">M</span>
-           )}
-           <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-500">
-             <X size={24} />
-           </button>
+          {isSidebarOpen || isMobileMenuOpen ? (
+            <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span>
+          ) : (
+            <span className="text-xl font-bold text-blue-600">M</span>
+          )}
+          <button onClick={() => setMobileMenuOpen(false)} className="md:hidden text-gray-500">
+            <X size={24} />
+          </button>
         </div>
-        
+
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
           {renderSidebarItem("dashboard", <LayoutDashboard size={20} />, "Dashboard")}
           {renderSidebarItem("restaurants", <Store size={20} />, "Restaurants")}
@@ -371,20 +370,20 @@ export default function ManageOffers() {
 
       {/* ===== Main Content ===== */}
       <div className="flex-1 flex flex-col w-full">
-        
+
         {/* ===== Top Header ===== */}
         <header className="bg-white border-b border-gray-200 z-10 sticky top-0">
           <div className="h-16 flex items-center justify-between px-4 md:px-6 shadow-sm">
             <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setMobileMenuOpen(true)} 
+              <button
+                onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600"
               >
                 <Menu size={24} />
               </button>
-              
-              <button 
-                onClick={() => setSidebarOpen(!isSidebarOpen)} 
+
+              <button
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
                 className="hidden md:block p-2 hover:bg-gray-100 rounded-lg text-gray-600"
               >
                 <Menu size={20} />
@@ -395,7 +394,7 @@ export default function ManageOffers() {
 
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-red-400">Key</span>
-              <button 
+              <button
                 onClick={() => setShowApiKeyInput(!showApiKeyInput)}
                 className={`md:hidden p-2 rounded-full transition-colors ${apiKey ? "text-green-600 bg-green-50" : "text-gray-500 bg-gray-100"}`}
               >
@@ -404,11 +403,11 @@ export default function ManageOffers() {
 
               <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-1.5 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <span className="text-xs font-bold text-red-400 mr-2">Key</span>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Your Key..." 
+                  placeholder="Your Key..."
                   className="bg-transparent border-none outline-none text-sm w-24 lg:w-32 text-gray-700 placeholder-gray-400"
                 />
               </div>
@@ -423,11 +422,11 @@ export default function ManageOffers() {
             <div className="md:hidden px-4 pb-4 animate-in slide-in-from-top-2">
               <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
                 <span className="text-xs font-bold text-red-400 mr-2 whitespace-nowrap">Your Key</span>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your key" 
+                  placeholder="Enter your key"
                   className="bg-transparent border-none outline-none text-sm w-full text-gray-700"
                 />
               </div>
@@ -437,36 +436,36 @@ export default function ManageOffers() {
 
         {/* ===== Scrollable Content Area ===== */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
-          
+
           {/* --- DASHBOARD TAB --- */}
           {activeTab === "dashboard" && (
             <div className="space-y-4 md:space-y-6">
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                 {[
-                   { icon: <Store size={24} />, color: "text-blue-600", bg: "bg-blue-100", label: "Restaurants", val: getFilteredRestaurants(restaurants).length },
-                   { icon: <Tag size={24} />, color: "text-green-600", bg: "bg-green-100", label: "Offers", val: offers.length },
-                   { icon: <EyeOff size={24} />, color: "text-orange-600", bg: "bg-orange-100", label: "Inactive", val: getFilteredOffers(inactiveOffers).length || "-" }
-                 ].map((stat, idx) => (
-                   <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-                      <div className={`p-3 ${stat.bg} ${stat.color} rounded-lg`}>{stat.icon}</div>
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                        <h3 className="text-xl md:text-2xl font-bold text-gray-800">{stat.val}</h3>
-                      </div>
-                   </div>
-                 ))}
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                {[
+                  { icon: <Store size={24} />, color: "text-blue-600", bg: "bg-blue-100", label: "Restaurants", val: getFilteredRestaurants(restaurants).length },
+                  { icon: <Tag size={24} />, color: "text-green-600", bg: "bg-green-100", label: "Offers", val: offers.length },
+                  { icon: <EyeOff size={24} />, color: "text-orange-600", bg: "bg-orange-100", label: "Inactive", val: getFilteredOffers(inactiveOffers).length || "-" }
+                ].map((stat, idx) => (
+                  <div key={idx} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div className={`p-3 ${stat.bg} ${stat.color} rounded-lg`}>{stat.icon}</div>
+                    <div>
+                      <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                      <h3 className="text-xl md:text-2xl font-bold text-gray-800">{stat.val}</h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
-                    <h3 className="text-lg md:text-xl font-bold mb-2">Manage Restaurants</h3>
-                    <button onClick={() => setActiveTab('restaurants')} className="w-full md:w-auto bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition mt-2">Go to Restaurants</button>
-                 </div>
-                 <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-6 text-white shadow-lg">
-                    <h3 className="text-lg md:text-xl font-bold mb-2">Offer Management</h3>
-                    <button onClick={() => setActiveTab('offers')} className="w-full md:w-auto bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition mt-2">Manage Offers</button>
-                 </div>
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+                  <h3 className="text-lg md:text-xl font-bold mb-2">Manage Restaurants</h3>
+                  <button onClick={() => setActiveTab('restaurants')} className="w-full md:w-auto bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-50 transition mt-2">Go to Restaurants</button>
+                </div>
+                <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-6 text-white shadow-lg">
+                  <h3 className="text-lg md:text-xl font-bold mb-2">Offer Management</h3>
+                  <button onClick={() => setActiveTab('offers')} className="w-full md:w-auto bg-white text-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition mt-2">Manage Offers</button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -476,7 +475,7 @@ export default function ManageOffers() {
               {/* ... (Existing Restaurant Tab Content) ... */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <h3 className="text-lg md:text-xl font-bold text-gray-800">All Restaurants</h3>
-                <button 
+                <button
                   onClick={() => setShowAddRestaurantForm(!showAddRestaurantForm)}
                   className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
                 >
@@ -489,34 +488,34 @@ export default function ManageOffers() {
                 <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-blue-100 animate-in slide-in-from-top-2">
                   <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">New Restaurant</h4>
                   <form onSubmit={handleRestaurantSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     {/* ... (Existing Form Fields) ... */}
-                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Name *</label>
-                       <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
+                    {/* ... (Existing Form Fields) ... */}
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold uppercase text-gray-500">Name *</label>
+                      <input name="name" value={form.name} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
-                       <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Address *</label>
+                      <input name="address" value={form.address} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
-                       <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
+                      <label className="text-xs font-semibold uppercase text-gray-500">Cuisine(comma separated)</label>
+                      <input name="cuisine" value={form.cuisine} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold uppercase text-gray-500">Rating</label>
-                            <input name="rating" type="number" step="1" value={form.rating} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold uppercase text-gray-500">Country</label>
-                            <select name="country" value={form.country} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
-                            {Object.values(countryMap).map((c) => <option key={c as string} value={c as string}>{c as string}</option>)}
-                            </select>
-                        </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold uppercase text-gray-500">Rating</label>
+                        <input name="rating" type="number" step="1" value={form.rating} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold uppercase text-gray-500">Country</label>
+                        <select name="country" value={form.country} onChange={handleFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                          {Object.values(countryMap).map((c) => <option key={c as string} value={c as string}>{c as string}</option>)}
+                        </select>
+                      </div>
                     </div>
                     <div className="space-y-1">
-                       <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Logo *</label>
-                       <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700" required />
+                      <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Logo *</label>
+                      <input name="logo" type="file" accept="image/*" onChange={handleFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700" required />
                     </div>
                     <div className="col-span-1 md:col-span-2 pt-2">
                       <button type="submit" className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2">
@@ -531,7 +530,7 @@ export default function ManageOffers() {
                 {getFilteredRestaurants(restaurants).map((r) => (
                   <div key={r.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-row md:flex-col">
                     <div className="w-24 md:w-full md:h-24 bg-gray-100 flex-shrink-0 relative flex items-center justify-center">
-                        <img src={r.logoUrl || "https://via.placeholder.com/150"} alt={r.name} className="md:absolute md:-bottom-10 md:left-5 h-16 w-16 md:h-20 md:w-20 rounded-lg md:border-4 md:border-white md:shadow object-cover m-2 md:m-0" />
+                      <img src={r.logoUrl || "https://via.placeholder.com/150"} alt={r.name} className="md:absolute md:-bottom-10 md:left-5 h-16 w-16 md:h-20 md:w-20 rounded-lg md:border-4 md:border-white md:shadow object-cover m-2 md:m-0" />
                     </div>
                     <div className="p-3 md:px-5 md:pb-5 md:pt-12 flex-1 flex flex-col justify-center md:block">
                       <h4 className="font-bold text-gray-800 leading-tight">{r.name}</h4>
@@ -549,185 +548,185 @@ export default function ManageOffers() {
           {/* --- OFFERS TAB --- */}
           {activeTab === "offers" && (
             <div className="space-y-4 md:space-y-6">
-               {/* ... (Existing Offers Tab Content) ... */}
-               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
-                    <select 
-                      value={selectedRestaurant} 
-                      onChange={handleSelectRestaurant} 
-                      className="bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-3"
-                    >
-                      <option value="">-- Choose a Restaurant --</option>
-                      {getFilteredRestaurants(restaurants).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                    </select>
-                  </div>
-                  {selectedRestaurant && (
-                    <button onClick={() => setShowAddOfferForm(!showAddOfferForm)} className="w-full md:w-auto self-end bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm">
-                      {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
-                      {showAddOfferForm ? "Cancel" : "Add Offer"}
-                    </button>
-                  )}
-               </div>
+              {/* ... (Existing Offers Tab Content) ... */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
+                  <select
+                    value={selectedRestaurant}
+                    onChange={handleSelectRestaurant}
+                    className="bg-gray-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-3"
+                  >
+                    <option value="">-- Choose a Restaurant --</option>
+                    {getFilteredRestaurants(restaurants).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+                {selectedRestaurant && (
+                  <button onClick={() => setShowAddOfferForm(!showAddOfferForm)} className="w-full md:w-auto self-end bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm">
+                    {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
+                    {showAddOfferForm ? "Cancel" : "Add Offer"}
+                  </button>
+                )}
+              </div>
 
-               {showAddOfferForm && selectedRestaurant && (
-                 <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-green-100">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
-                    <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                       {/* ... (Existing Offer Form Fields) ... */}
-                       <div className="md:col-span-2 space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Offer Title</label>
-                          <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 outline-none" required  />
-                       </div>
-                       <div className="space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
-                          <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
-                            <option value="">Select</option>
-                            {cuisineOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                       </div>
-                       
-                       {/* Price Row */}
-                       <div className="grid grid-cols-2 gap-3 md:contents">
-                           <div className="space-y-1">
-                              <label className="text-xs font-semibold text-gray-500">Original (QAR)</label>
-                              <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required  />
-                           </div>
-                           <div className="space-y-1">
-                              <label className="text-xs font-semibold text-gray-500">Discounted (QAR)</label>
-                              <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required  />
-                           </div>
-                       </div>
+              {showAddOfferForm && selectedRestaurant && (
+                <div className="bg-white p-4 md:p-6 rounded-xl shadow border border-green-100">
+                  <h4 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Create New Offer</h4>
+                  <form onSubmit={handleOfferUpload} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* ... (Existing Offer Form Fields) ... */}
+                    <div className="md:col-span-2 space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Offer Title</label>
+                      <input name="title" value={offerForm.title} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-blue-500 outline-none" required />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Category/Cuisine</label>
+                      <select name="category" value={offerForm.category} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                        <option value="">Select</option>
+                        {cuisineOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
 
-                       {/* Date Row */}
-                       <div className="grid grid-cols-2 gap-3 md:contents">
-                           <div className="space-y-1">
-                              <label className="text-xs font-semibold text-gray-500">Valid From</label>
-                              <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
-                           </div>
-                           <div className="space-y-1">
-                              <label className="text-xs font-semibold text-gray-500">Valid To</label>
-                              <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
-                           </div>
-                       </div>
-                       <div className="space-y-1 md:col-span-1">
-                          <label className="text-xs font-semibold text-gray-500">Offer Type</label>
-                          <select name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
-                             {["All", "Buffet", "Combo", "Happy Hour", "Special", "Catering", "Discount"].map(t => <option key={t} value={t}>{t}</option>)}
-                          </select>
-                       </div>
-                       <div className="space-y-1 md:col-span-2">
-                          <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Image *</label>
-                          <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-50 file:text-green-700" required/>
-                       </div>
-                       <div className="md:col-span-3 space-y-1">
-                          <label className="text-xs font-semibold text-gray-500">Description</label>
-                          <textarea name="description" rows={3} value={offerForm.description} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" />
-                       </div>
-                       <div className="md:col-span-3 pt-2">
-                          <button type="submit" className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium shadow-md">Upload Offer</button>
-                       </div>
-                    </form>
-                 </div>
-               )}
+                    {/* Price Row */}
+                    <div className="grid grid-cols-2 gap-3 md:contents">
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500">Original (QAR)</label>
+                        <input name="originalPrice" type="number" value={offerForm.originalPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500">Discounted (QAR)</label>
+                        <input name="discountedPrice" type="number" value={offerForm.discountedPrice} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                      </div>
+                    </div>
 
-               {!selectedRestaurant ? (
-                 <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                   <Store size={40} className="mb-3 opacity-30" />
-                   <p className="text-sm">Select a restaurant to manage offers.</p>
-                 </div>
-               ) : offers.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                   <Tag size={40} className="mb-3 opacity-30" />
-                   <p className="text-sm">No offers found. Create one!</p>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                   {getFilteredOffers(offers).map((o) => (
-                     <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col">
-                        {/* ... (Existing Offer Card) ... */}
-                        <div className="relative h-48 sm:h-40">
-                          <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
-                          <div className="absolute top-2 right-2">
-                             <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-2 rounded-full shadow hover:bg-red-600 hover:text-white transition">
-                               <Trash2 size={16} />
-                             </button>
-                          </div>
-                          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded uppercase tracking-wide">
-                            {o.offerType}
-                          </div>
+                    {/* Date Row */}
+                    <div className="grid grid-cols-2 gap-3 md:contents">
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500">Valid From</label>
+                        <input name="validFrom" type="date" value={offerForm.validFrom} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-gray-500">Valid To</label>
+                        <input name="validTo" type="date" value={offerForm.validTo} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" required />
+                      </div>
+                    </div>
+                    <div className="space-y-1 md:col-span-1">
+                      <label className="text-xs font-semibold text-gray-500">Offer Type</label>
+                      <select name="offerType" value={offerForm.offerType} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm bg-white">
+                        {["All", "Buffet", "Combo", "Happy Hour", "Special", "Catering", "Discount"].map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Paperclip size={14} /> Image *</label>
+                      <input name="offerImg" type="file" accept="image/*" onChange={handleOfferFormChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-50 file:text-green-700" required />
+                    </div>
+                    <div className="md:col-span-3 space-y-1">
+                      <label className="text-xs font-semibold text-gray-500">Description</label>
+                      <textarea name="description" rows={3} value={offerForm.description} onChange={handleOfferFormChange} className="w-full border border-gray-300 rounded-lg p-3 text-sm" />
+                    </div>
+                    <div className="md:col-span-3 pt-2">
+                      <button type="submit" className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium shadow-md">Upload Offer</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {!selectedRestaurant ? (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <Store size={40} className="mb-3 opacity-30" />
+                  <p className="text-sm">Select a restaurant to manage offers.</p>
+                </div>
+              ) : offers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <Tag size={40} className="mb-3 opacity-30" />
+                  <p className="text-sm">No offers found. Create one!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {getFilteredOffers(offers).map((o) => (
+                    <div key={o.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col">
+                      {/* ... (Existing Offer Card) ... */}
+                      <div className="relative h-48 sm:h-40">
+                        <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                        <div className="absolute top-2 right-2">
+                          <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-2 rounded-full shadow hover:bg-red-600 hover:text-white transition">
+                            <Trash2 size={16} />
+                          </button>
                         </div>
-                        <div className="p-4 flex-1 flex flex-col">
-                          <h5 className="font-bold text-gray-800 line-clamp-1">{o.title}</h5>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">{o.description}</p>
-                          <div className="mt-4 flex items-baseline justify-between">
-                             <div className="flex items-baseline gap-2">
-                                <span className="text-lg font-bold text-green-600">{o.discountedPrice}</span>
-                                <span className="text-xs font-medium text-gray-400">QAR</span>
-                             </div>
-                             {o.originalPrice && <span className="text-xs text-gray-400 line-through decoration-red-400">{o.originalPrice} QAR</span>}
-                          </div>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded uppercase tracking-wide">
+                          {o.offerType}
                         </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col">
+                        <h5 className="font-bold text-gray-800 line-clamp-1">{o.title}</h5>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2 flex-1">{o.description}</p>
+                        <div className="mt-4 flex items-baseline justify-between">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-lg font-bold text-green-600">{o.discountedPrice}</span>
+                            <span className="text-xs font-medium text-gray-400">QAR</span>
+                          </div>
+                          {o.originalPrice && <span className="text-xs text-gray-400 line-through decoration-red-400">{o.originalPrice} QAR</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* --- INACTIVE OFFERS TAB --- */}
           {activeTab === "inactive" && (
             <div className="space-y-4 md:space-y-6">
-               <div className="flex items-center justify-between">
-                 <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                   <EyeOff size={24} className="text-orange-500" />
-                   Inactive / Under Review
-                 </h3>
-               </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                  <EyeOff size={24} className="text-orange-500" />
+                  Inactive / Under Review
+                </h3>
+              </div>
 
-               {inactiveOffers.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                   <AlertCircle size={48} className="mb-4 opacity-30" />
-                   <p className="text-sm font-medium">No inactive offers found.</p>
-                 </div>
-               ) : (
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                   {getFilteredOffers(inactiveOffers).map((o, idx) => (
-                     <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
-                        {/* Placeholder Image Area */}
-                        {user?.role === "admin" ? (
-                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
-                            <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+              {inactiveOffers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                  <AlertCircle size={48} className="mb-4 opacity-30" />
+                  <p className="text-sm font-medium">No inactive offers found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {getFilteredOffers(inactiveOffers).map((o, idx) => (
+                    <div key={o.id || idx} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm flex flex-col opacity-90">
+                      {/* Placeholder Image Area */}
+                      {user?.role === "admin" ? (
+                        <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                          <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
+                          <div className="bg-orange-100 text-orange-600 p-3 rounded-full mb-2">
+                            <AlertCircle size={24} />
                           </div>
-                        ) : (
-                          <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
-                            <div className="bg-orange-100 text-orange-600 p-3 rounded-full mb-2">
-                              <AlertCircle size={24}  />
-                              </div>
-                              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
-                            </div>
-                        )}
-                        <div className="p-4 flex-1 flex flex-col">
-                          <div className="flex justify-between items-start mb-1">
-                             <h5 className="font-bold text-gray-800 line-clamp-1 flex-1 pr-2">{o.title}</h5>
-                             <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">{o.cuisine || o.category || "General"}</span>
+                          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
+                        </div>
+                      )}
+                      <div className="p-4 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-1">
+                          <h5 className="font-bold text-gray-800 line-clamp-1 flex-1 pr-2">{o.title}</h5>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded border border-gray-200">{o.cuisine || o.category || "General"}</span>
+                        </div>
+
+                        <div className="mt-3 space-y-2 text-xs text-gray-500 border-t border-gray-100 pt-3">
+                          <div className="flex justify-between">
+                            <span>Valid From:</span>
+                            <span className="font-medium text-gray-700">{formatDate(o.validFrom)}</span>
                           </div>
-                          
-                          <div className="mt-3 space-y-2 text-xs text-gray-500 border-t border-gray-100 pt-3">
-                             <div className="flex justify-between">
-                               <span>Valid From:</span>
-                               <span className="font-medium text-gray-700">{formatDate(o.validFrom)}</span>
-                             </div>
-                             <div className="flex justify-between">
-                               <span>Valid To:</span>
-                               <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
-                             </div>
+                          <div className="flex justify-between">
+                            <span>Valid To:</span>
+                            <span className="font-medium text-gray-700">{formatDate(o.validTo)}</span>
                           </div>
                         </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -740,7 +739,7 @@ export default function ManageOffers() {
                   Enquiries & Messages
                 </h3>
               </div>
-              
+
               {loadingMessages ? (
                 <div className="flex justify-center py-20">
                   <Loader2 className="animate-spin text-blue-500" size={32} />
@@ -794,7 +793,7 @@ export default function ManageOffers() {
                                     <p className="leading-relaxed">
                                       {msg.message}
                                     </p>
-                                    
+
                                     {/* Tooltip Arrow (Optional Visual Flair) */}
                                     <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-slate-800"></div>
                                   </div>
@@ -805,10 +804,10 @@ export default function ManageOffers() {
                             </td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
-                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' : 
+                                ${msg.status === 'RESOLVED' ? 'bg-green-50 text-green-700 border border-green-200' :
                                   msg.status === 'IN_PROGRESS' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                                  msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
-                                  'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                                    msg.status === 'SEND_FAILED' ? 'bg-red-50 text-red-700 border border-red-200' :
+                                      'bg-blue-50 text-blue-700 border border-blue-200'}`}>
                                 {msg.status === 'RESOLVED' && <CheckCircle size={12} />}
                                 {msg.status === 'NEW' && <Clock size={12} />}
                                 {msg.status === 'SEND_FAILED' && <XCircle size={12} />}
@@ -824,7 +823,7 @@ export default function ManageOffers() {
                                   Mark Resolved
                                 </button>
                               )}
-                              </td>
+                            </td>
                             }
                           </tr>
                         ))}
@@ -862,7 +861,7 @@ export default function ManageOffers() {
             <div className="mt-6 md:mt-10">
               <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100 text-center mx-auto max-w-lg">
                 <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-purple-600">
-                   <UploadCloud size={32} />
+                  <UploadCloud size={32} />
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">Bulk Import</h3>
                 <p className="text-sm text-gray-500 mb-6">Process large datasets. Ensure your Key is set.</p>
@@ -874,16 +873,16 @@ export default function ManageOffers() {
           )}
 
         </main>
-         {/* ===== Footer ===== */}
+        {/* ===== Footer ===== */}
         <footer className="bg-white border-t border-gray-200 py-4 px-6">
-           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
-              <p>© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
-              <div className="flex items-center gap-2">
-                <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
-                <span>Powered by</span>
-                <span className="font-medium text-slate-700">MerakiAi</span>
-              </div>
-           </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-900">
+            <p>© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
+            <div className="flex items-center gap-2">
+              <img src={'/meraki.webp'} alt="Meraki AI" className="w-3 h-3 object-contain" />
+              <span>Powered by</span>
+              <span className="font-medium text-slate-700">MerakiAi</span>
+            </div>
+          </div>
         </footer>
       </div>
 

@@ -1,8 +1,8 @@
 // Service for restaurants. Mirrors the offers service API style.
 
-import { RESTAURANTS_URL,BULK_API_URL } from '../config/apiConfig';
+import { RESTAURANTS_URL, BULK_API_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
-import { getAuthToken } from '../auth/firebaseClient'; 
+import { getAuthToken } from '../auth/firebaseClient';
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
   // Prevent continuous retries when the backend returns no data/errors.
@@ -35,7 +35,7 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   } catch (err) {
     // fall through
   }
- 
+
   // mark failed attempt
   state.attempts = (state.attempts || 0) + 1;
   state.lastAttempt = Date.now();
@@ -71,6 +71,12 @@ async function loadRestaurants() {
 export async function getAllRestaurants() {
   return await loadRestaurants();
 }
+//getAllOwnerRestaurants
+export async function getAllOwnerRestaurants() {
+  const res = await fetch(`${RESTAURANTS_URL}/all/active`);
+  if (!res.ok) throw new Error("Failed to fetch active offers");
+  return res.json();
+}
 
 export async function getRestaurantById(id) {
   const restaurants = await loadRestaurants();
@@ -88,16 +94,16 @@ export async function getRestaurantsByCountry(country) {
 // Upload or update a restaurant with images
 export async function uploadRestaurant(formData, options = {}) {
   try {
-     // ✅ FIX: Await the token here first
+    // ✅ FIX: Await the token here first
     const token = await getAdminAuthToken();
     const res = await fetch(`${RESTAURANTS_URL}`, {
       method: 'POST',
       body: formData,
-       headers: {
+      headers: {
         ...(options.headers || {}), // pass x-api-token here
         'Authorization': `Bearer ${token}`,
-      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
-      // If sending FormData, do NOT set Content-Type manually.
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
       },
     });
     if (!res.ok) throw new Error('Failed to upload restaurant');
@@ -117,8 +123,8 @@ export async function uploadBulkData(options = {}) {
       headers: {
         ...(options.headers || {}), // pass x-api-token here
         'Authorization': `Bearer ${token}`,
-      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
-      // If sending FormData, do NOT set Content-Type manually.
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
       },
       // assuming backend accepts no body, or you can add formData/json if needed
     });
@@ -133,14 +139,14 @@ export async function uploadBulkData(options = {}) {
 //Get the auth token for admin operations
 export async function getAdminAuthToken() {
   // 1. Get the Firebase Token automatically
-    const token = await getAuthToken();
+  const token = await getAuthToken();
 
-    if (!token) {
-      console.warn("User is not authenticated. Please login...");
-      // You could also throw an error here to stop the request immediately
-      throw new Error("Authentication required"); 
-    }
-    return token;
+  if (!token) {
+    console.warn("User is not authenticated. Please login...");
+    // You could also throw an error here to stop the request immediately
+    throw new Error("Authentication required");
+  }
+  return token;
 }
 
 // Get logo or brand image URL for restaurant

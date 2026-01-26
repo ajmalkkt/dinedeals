@@ -4,19 +4,19 @@
 import { act } from 'react';
 import { OFFERS_URL } from '../config/apiConfig';
 import { LOG_API_RESPONSE } from '../config/appConfig';
-import { getAuthToken } from '../auth/firebaseClient'; 
+import { getAuthToken } from '../auth/firebaseClient';
 
 //Get the auth token for admin operations
 export async function getAdminAuthToken() {
   // 1. Get the Firebase Token automatically
-    const token = await getAuthToken();
+  const token = await getAuthToken();
 
-    if (!token) {
-      console.warn("User is not authenticated. Please login...");
-      // You could also throw an error here to stop the request immediately
-      throw new Error("Authentication required"); 
-    }
-    return token;
+  if (!token) {
+    console.warn("User is not authenticated. Please login...");
+    // You could also throw an error here to stop the request immediately
+    throw new Error("Authentication required");
+  }
+  return token;
 }
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
@@ -32,7 +32,7 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   } catch (err) {
     // fall through to fallback fetch
   }
-  
+
   if (LOG_API_RESPONSE && typeof window !== 'undefined') {
     window.__offerDataSource = 'NONE';
     console.log('[OfferService] No offer data found.');
@@ -63,6 +63,12 @@ export async function getOffersByRestaurantId(restaurantId) {
   return offers.filter((o) => o.restaurantId === rid);
 }
 
+export async function getOffersByOwnerRestaurantId(restaurantId) {
+  const res = await fetch(`${OFFERS_URL}/${restaurantId}/restaurant`);
+  if (!res.ok) throw new Error("Failed to get offers by owner restaurant id");
+  return await res.json();
+}
+
 export async function searchOffersByCuisine(cuisine) {
   const res = await fetch(`${OFFERS_URL}/search/${encodeURIComponent(cuisine)}`);
   if (!res.ok) throw new Error("Failed to search offers");
@@ -81,8 +87,8 @@ export async function uploadOffer(formData, options = {}) {
       headers: {
         ...(options.headers || {}), // pass x-api-token here
         'Authorization': `Bearer ${token}`,
-      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
-      // If sending FormData, do NOT set Content-Type manually.
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
       },
     });
     if (!res.ok) {
@@ -108,8 +114,8 @@ export async function deleteOffer(id, options = {}) {
       headers: {
         ...(options.headers || {}), // pass x-api-token here
         'Authorization': `Bearer ${token}`,
-      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
-      // If sending FormData, do NOT set Content-Type manually.
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
       },
     });
     if (!res.ok) {
@@ -133,8 +139,8 @@ export async function activateOffer(id, options = {}) {
       headers: {
         ...(options.headers || {}), // pass x-api-token here
         'Authorization': `Bearer ${token}`,
-      // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
-      // If sending FormData, do NOT set Content-Type manually.
+        // Note: If sending JSON, ensure 'Content-Type': 'application/json' is in options.headers
+        // If sending FormData, do NOT set Content-Type manually.
       },
     });
     if (!res.ok) throw new Error('Failed to activate offer');
@@ -155,10 +161,10 @@ export async function activateOffers(payload) {
   const token = await getAdminAuthToken();
   const res = await fetch(`${OFFERS_URL}/bulk-activate`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey,"Authorization": `Bearer ${token}` },
+    headers: { "Content-Type": "application/json", "x-api-token": payload.apiKey, "Authorization": `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) { 
+  if (!res.ok) {
     //extract the message field from response json
     const errorData = await res.json();
     const errorMessage = errorData.message || 'Failed to activate offers';
@@ -170,7 +176,8 @@ export async function activateOffers(payload) {
 
 //getAllActiveOffers
 export async function getAllActiveOffers() {
-  const res = await fetch(OFFERS_URL);
+  //add token
+  const res = await fetch(`${OFFERS_URL}/all/active`);
   if (!res.ok) throw new Error("Failed to fetch active offers");
   return res.json();
 }
@@ -180,10 +187,10 @@ export async function inactivateOffers(payload) {
   const token = await getAdminAuthToken();
   const res = await fetch(`${OFFERS_URL}/inactivate`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json","x-api-token": payload.apiKey,"Authorization": `Bearer ${token}` },
+    headers: { "Content-Type": "application/json", "x-api-token": payload.apiKey, "Authorization": `Bearer ${token}` },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) { 
+  if (!res.ok) {
     //extract the message field from response json
     const errorData = await res.json();
     const errorMessage = errorData.message || 'Failed to inactivate offers';
@@ -191,7 +198,7 @@ export async function inactivateOffers(payload) {
     throw new Error(errorMessage);
   }
   return res.json();
-}   
+}
 
 // Get offer image URL
 export function getOfferImageUrl(id) {
