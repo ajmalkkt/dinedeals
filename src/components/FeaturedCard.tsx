@@ -54,16 +54,16 @@ export default function FeaturedCard({
         onClick={onTextClick} 
         className="w-full cursor-pointer group transition-transform hover:-translate-y-1 duration-300 relative z-0"
       >
-        <Card className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7] border border-green-200 overflow-hidden h-auto min-h-[128px] md:h-36 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7] border border-green-200 overflow-hidden h-auto min-h-[128px] md:h-24 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-0 h-full">
             <div className="flex flex-row h-full relative items-stretch">
               
               {/* --- LEFT SIDE: TEXT CONTENT --- */}
               <div className="flex-1 p-3 md:p-5 flex flex-col justify-between min-w-0">
                 <div>
-                  <div className="flex items-center gap-1 mb-1.5">
+                  <div className="flex items-center gap-1 mb-1">
                     <Leaf size={10} className="text-green-600 flex-shrink-0" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-green-700 bg-green-100 px-1.5 py-0.2 rounded-full whitespace-nowrap">
                       Eco Initiative
                     </span>
                   </div>
@@ -77,9 +77,9 @@ export default function FeaturedCard({
                   </p>
                 </div>
 
-                <div className="mt-1.5 flex items-center gap-1 text-[10px] md:text-xs font-bold text-orange-600 transition-all transform 
+                <div className="mt-1 flex items-center gap-1 text-[10px] md:text-xs font-bold text-orange-600 transition-all transform 
                   opacity-100 translate-x-0 
-                  md:opacity-0 md:translate-x-[-5px] md:group-hover:opacity-100 md:group-hover:translate-x-0"
+                  md:opacity-0 md:translate-x-[-2px] md:group-hover:opacity-100 md:group-hover:translate-x-0"
                 >
                    Read our story <ArrowRight size={12} />
                 </div>

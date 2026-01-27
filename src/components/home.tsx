@@ -295,7 +295,16 @@ function Home() {
           onCuisineSelect={handleCuisineSelect}
         />
       </div>
-
+      {/* 🔍 SEO Marquee Strip */}
+      <div className="overflow-hidden bg-green-50 border-green-200">
+        <div className="whitespace-nowrap animate-marquee py-1 text-sm font-medium text-green-900">
+          <span className="mx-6">
+            Best food offers in Qatar today • Family dinner buffet offers •
+            Top food offers in Qatar • Budget-friendly options (QAR 5–20) • Best restaurants in Qatar •
+            Affordable restaurants in Doha • Discover the best dining deals in Qatar on BrowseQatar
+          </span>
+        </div>
+      </div>
       <main className="container mx-auto px-2 py-1">
         <div className="mt-0">
           <FeaturedCard
