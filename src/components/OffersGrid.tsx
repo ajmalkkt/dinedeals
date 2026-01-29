@@ -281,6 +281,26 @@ const OffersGrid = ({
     );
   };
 
+  const generateOfferSchema = (offer: any, restaurant: any) => ({
+    "@context": "https://schema.org",
+    "@type": "Offer",
+    "name": offer.title,
+    "description": offer.description,
+    "price": offer.discountedPrice,
+    "priceCurrency": "QAR",
+    "availability": "https://schema.org/InStock",
+    "validFrom": offer.validFrom,
+    "validThrough": offer.validTo,
+    "itemOffered": {
+      "@type": "FoodEstablishment",
+      "name": restaurant?.name || "Restaurant in Qatar",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": offer.location || "Doha",
+        "addressCountry": "QA"
+      }
+    }
+  });
 
   if (isLoading) {
     return (
@@ -320,6 +340,12 @@ const OffersGrid = ({
         {filteredOffers.map((offer) => {
           const restaurant = restaurants.find((r) => r.id === offer.restaurantId);
           return (
+            <React.Fragment key={offer.id}>
+      
+            {/* SEO Schema for Google */}
+            <script type="application/ld+json">
+              {JSON.stringify(generateOfferSchema(offer, restaurant))}
+            </script>
             <OfferCard
               key={offer.id}
               offer={offer}
@@ -332,6 +358,7 @@ const OffersGrid = ({
               isFavorite={favorites.includes(offer.id)}
               onToggleFavorite={onToggleFavorite}
             />
+            </React.Fragment>
           );
         })}
       </div>

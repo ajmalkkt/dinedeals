@@ -28,15 +28,14 @@ export default function AboutUs() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-yellow-100 py-6 px-4">
       <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200 relative">
-        
+
         {/* Animated Top Banner */}
         <div className="relative h-56 w-full overflow-hidden">
           {cuisineImages.map((url, index) => (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                index === currentImage ? "opacity-100" : "opacity-0"
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImage ? "opacity-100" : "opacity-0"
+                }`}
               style={{
                 backgroundImage: `url(${url})`,
                 backgroundSize: "cover",
@@ -49,7 +48,7 @@ export default function AboutUs() {
 
         {/* Content */}
         <div className="p-6 relative z-10">
-          
+
           {/* Back button */}
           <div className="flex items-center justify-between mb-2">
             <button
@@ -67,35 +66,71 @@ export default function AboutUs() {
 
           {/* Core About Text */}
           <p className="text-gray-700 leading-relaxed mb-4 text-center">
-            Welcome to <strong>BQ&apos;s Dine Offers</strong>, part of 
-            <strong> BrowseQatar.com</strong> — your trusted platform to discover 
-            <strong> the best food offers in Qatar</strong>.
+            Welcome to <strong>BQ&apos;s Dine Offers</strong>, part of
+            <strong> BrowseQatar.com</strong> — your trusted platform to discover
+            the best food offers in Qatar.
             <span className="font-semibold text-green-600">
               {" "}Our primary motto is to reduce food wastage while helping you save money.
             </span>
           </p>
 
           <p className="text-gray-700 leading-relaxed mb-4">
-            We connect food lovers with <strong>top food offers in Qatar</strong>, 
-            making it easy to explore <strong>the best dining deals in Qatar </strong> 
-            across Doha and beyond. From premium restaurants to 
-            <strong> affordable restaurants in Doha</strong>, BrowseQatar helps you 
+            We connect food lovers with top food offers in Qatar,
+            making it easy to explore the best dining deals in Qatar
+            across Doha and beyond. From premium restaurants to
+            affordable restaurants in Doha, BrowseQatar helps you
             enjoy great food without overspending.
           </p>
 
           <p className="text-gray-700 leading-relaxed mb-4">
-            Whether you are searching for <strong>cheap food offers in Qatar</strong>, 
-            planning a night out with loved ones, or looking for 
-            <strong> family dinner buffet offers</strong>, our platform brings everything 
-            together in one place. You can easily find 
-            <strong> the best food offers in Qatar today</strong>, updated regularly for your convenience.
+            Whether you are searching for cheap food offers in Qatar,
+            planning a night out with loved ones, or looking for
+            family dinner buffet offers, our platform brings everything
+            together in one place. You can easily find
+            the best food offers in Qatar today, updated regularly for your convenience.
           </p>
 
           <p className="text-gray-700 leading-relaxed mb-6">
-            BrowseQatar also highlights <strong>budget-friendly options (QAR 5–20)</strong>, 
-            helping students, families, and professionals enjoy quality dining experiences. 
-            From casual cafés to <strong>the best restaurants in Qatar</strong>, 
-            you can <strong>find all dining offers here</strong> — simple, transparent, and value-driven.
+            BrowseQatar also highlights budget-friendly options (QAR 5–20),
+            helping students, families, and professionals enjoy quality dining experiences.
+            From casual cafés to the best restaurants in Qatar,
+            you can find all dining offers here — simple, transparent, and value-driven.
+          </p>
+
+          <h2 className="text-md md:text-lg font-semibold text-green-900 mt-6 mb-3 text-center">
+            What We Offer at BrowseQatar
+          </h2>
+          <h3 className="text-sm md:text-base font-semibold text-green-800 mt-5 mb-2">
+            Discover the Best Food Offers in Qatar
+          </h3>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            BrowseQatar helps food lovers discover the best food offers in Qatar today by
+            bringing together dining deals from restaurants, cafés, and hotels across Doha
+            and other locations.
+          </p>
+
+          <h3 className="text-sm md:text-base font-semibold text-green-800 mt-5 mb-2">
+            Affordable Dining Deals for Every Budget
+          </h3>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            We feature cheap food offers in Qatar along with budget-friendly options from
+            QAR 5 to 20, making it easy to enjoy affordable restaurants in Doha.
+          </p>
+
+          <h3 className="text-sm md:text-base font-semibold text-green-800 mt-5 mb-2">
+            Family Dinner Buffet Offers & Group Dining
+          </h3>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            BrowseQatar highlights family dinner buffet offers and group dining deals that
+            are perfect for weekends, celebrations, and special occasions.
+          </p>
+
+          <h3 className="text-sm md:text-base font-semibold text-green-800 mt-5 mb-2">
+            Explore the Best Restaurants in Qatar & Doha
+          </h3>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            From popular brands to local favorites, BrowseQatar showcases some of the best
+            restaurants in Qatar and affordable restaurants in Doha.
           </p>
 
           {/* Cuisine Icons */}
