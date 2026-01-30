@@ -163,7 +163,9 @@ const OfferDetails = () => {
                                 )}
                             </div>
                         </div>
-
+                        <div>
+                            <span className="text-gray-400 text-sm">{offer.description}</span>
+                        </div>
                         <hr className="border-gray-100 mb-6" />
 
                         {/* Restaurant Info */}
