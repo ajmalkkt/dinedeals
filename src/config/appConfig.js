@@ -1,29 +1,31 @@
 
-  const SHOW_DISCOUNTED_PRICE = import.meta.env.VITE_SHOW_DISCOUNTED_PRICE === "true";
-  const SHOW_CUISINE_NAV = import.meta.env.VITE_SHOW_CUISINE_NAV === "true";
+const SHOW_DISCOUNTED_PRICE = import.meta.env.VITE_SHOW_DISCOUNTED_PRICE === "true";
+const SHOW_CUISINE_NAV = import.meta.env.VITE_SHOW_CUISINE_NAV === "true";
 
-  const ENQUIRY_EMAIL = import.meta.env.VITE_ENQUIRY_EMAIL || "info@dinedeals.com";
-  const ENQUIRY_PHONE = import.meta.env.VITE_ENQUIRY_PHONE || "+974 1234 5678";
+const ENQUIRY_EMAIL = import.meta.env.VITE_ENQUIRY_EMAIL || "info@dinedeals.com";
+const ENQUIRY_PHONE = import.meta.env.VITE_ENQUIRY_PHONE || "+974 1234 5678";
 
-  const SHOW_OFFER_TYPE_FILTER = import.meta.env.VITE_SHOW_OFFER_TYPE_FILTER === "true";
-  const SHOW_OFFER_DETAIL = import.meta.env.VITE_SHOW_OFFER_DETAIL === "true";
-  const SHOW_OFFER_AVATAR = import.meta.env.VITE_SHOW_OFFER_AVATAR === "true";
-  const LOG_API_RESPONSE = import.meta.env.VITE_LOG_API_RESPONSE === "true";
+const SHOW_OFFER_TYPE_FILTER = import.meta.env.VITE_SHOW_OFFER_TYPE_FILTER === "true";
+const SHOW_OFFER_DETAIL = import.meta.env.VITE_SHOW_OFFER_DETAIL === "true";
+const SHOW_OFFER_AVATAR = import.meta.env.VITE_SHOW_OFFER_AVATAR === "true";
+const LOG_API_RESPONSE = import.meta.env.VITE_LOG_API_RESPONSE === "true";
+const ENABLE_RANDOM_SORT = import.meta.env.VITE_ENABLE_RANDOM_SORT === "true";
 
-  // Auth provider: KEYCLOAK or FIREBASE
-  const AUTH_PROVIDER = (import.meta.env.VITE_AUTH_PROVIDER || "KEYCLOAK").toUpperCase();
 
-  // Feature flags for signup (disabled by default, set VITE_ENABLE_SIGNUP=true to enable)
-  const ENABLE_SIGNUP = import.meta.env.VITE_ENABLE_SIGNUP === "true";
+// Auth provider: KEYCLOAK or FIREBASE
+const AUTH_PROVIDER = (import.meta.env.VITE_AUTH_PROVIDER || "KEYCLOAK").toUpperCase();
 
-  const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || "Qatar";
-  const DEFAULT_CATEGORY = import.meta.env.VITE_DEFAULT_CATEGORY || "All Offers";
+// Feature flags for signup (disabled by default, set VITE_ENABLE_SIGNUP=true to enable)
+const ENABLE_SIGNUP = import.meta.env.VITE_ENABLE_SIGNUP === "true";
 
-  const SHOW_OFFERS = import.meta.env.VITE_SHOW_OFFERS === "true";
-  const SHOW_PRODUCTS = import.meta.env.VITE_SHOW_PRODUCTS === "true";
-  const SHOW_COUPONS = import.meta.env.VITE_SHOW_COUPONS === "true";
-  const SHOW_ENTERTAINMENT = import.meta.env.VITE_SHOW_ENTERTAINMENT === "true";
-  const SHOW_FINANCIAL_SERVICE = import.meta.env.VITE_SHOW_FINANCIAL_SERVICE === "true";
+const DEFAULT_COUNTRY = import.meta.env.VITE_DEFAULT_COUNTRY || "Qatar";
+const DEFAULT_CATEGORY = import.meta.env.VITE_DEFAULT_CATEGORY || "All Offers";
+
+const SHOW_OFFERS = import.meta.env.VITE_SHOW_OFFERS === "true";
+const SHOW_PRODUCTS = import.meta.env.VITE_SHOW_PRODUCTS === "true";
+const SHOW_COUPONS = import.meta.env.VITE_SHOW_COUPONS === "true";
+const SHOW_ENTERTAINMENT = import.meta.env.VITE_SHOW_ENTERTAINMENT === "true";
+const SHOW_FINANCIAL_SERVICE = import.meta.env.VITE_SHOW_FINANCIAL_SERVICE === "true";
 
 
 export const cuisineOptions = [
@@ -115,7 +117,7 @@ export const countryMap = {
   'Saudi Arabia': "Saudi Arabia",
 };
 
-export default { 
+export default {
   cuisineOptions,
   locationOptions,
   offerTypeOptions,
@@ -132,7 +134,7 @@ export {
   SHOW_FINANCIAL_SERVICE,
   SHOW_OFFERS,
   SHOW_OFFER_TYPE_FILTER,
-  SHOW_OFFER_DETAIL,  
+  SHOW_OFFER_DETAIL,
   SHOW_OFFER_AVATAR,
   ENQUIRY_EMAIL,
   ENQUIRY_PHONE,
@@ -141,4 +143,6 @@ export {
   LOG_API_RESPONSE,
   AUTH_PROVIDER,
   ENABLE_SIGNUP,
+  ENABLE_RANDOM_SORT,
 };
+

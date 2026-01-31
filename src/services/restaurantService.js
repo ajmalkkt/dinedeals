@@ -74,7 +74,7 @@ export async function getAllRestaurants() {
 //getAllOwnerRestaurants
 export async function getAllOwnerRestaurants() {
   const res = await fetch(`${RESTAURANTS_URL}/all/active`);
-  if (!res.ok) throw new Error("Failed to fetch active offers");
+  if (!res.ok) throw new Error("Failed to fetch active restaurants");
   return res.json();
 }
 

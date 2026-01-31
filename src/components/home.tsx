@@ -23,6 +23,7 @@ import {
   DEFAULT_CATEGORY,
   SHOW_CUISINE_NAV,
   SHOW_OFFER_DETAIL,
+  ENABLE_RANDOM_SORT,
 } from "../config/appConfig";
 
 // Types
@@ -78,7 +79,17 @@ function Home() {
   });
   // ✅ New State for the Popup
   const [isSaveFoodOpen, setSaveFoodOpen] = useState(false);
-  const [sortOption, setSortOption] = useState("");
+
+  // Initialize sortOption based on config
+  const [sortOption, setSortOption] = useState(() => {
+    if (ENABLE_RANDOM_SORT) {
+      const options = ["latest", "best-value", "price-asc", "price-desc"];
+      const randomIndex = Math.floor(Math.random() * options.length);
+      return options[randomIndex];
+    }
+    return ""; // Default
+  });
+
 
   // Refs for scrolling
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -163,10 +174,13 @@ function Home() {
   const sortedOffers = useMemo(() => {
     let sortable = [...filteredOffers];
     const option = sortOption || "best-value"; // Default to best-value if empty
-
+    //console.log("Sort Option:", option);
     sortable.sort((a, b) => {
-      if (option === "price-asc") {
+      if (option === "latest") {
+        return b.id - a.id;
+      } else if (option === "price-asc") {
         return a.discountedPrice - b.discountedPrice;
+
       } else if (option === "price-desc") {
         return b.discountedPrice - a.discountedPrice;
       } else if (option === "best-value") {
@@ -338,8 +352,9 @@ function Home() {
                 className="brand-gradient-bg text-white border-none rounded-md text-sm focus:ring-2 focus:ring-white/20 outline-none cursor-pointer py-1 px-2"
               >
                 <option value="" disabled className="text-gray-500 bg-white">Sort By</option>
-                <option value="price-asc" className="text-gray-700 bg-white">Low to High</option>
+                <option value="latest" className="text-gray-700 bg-white">Latest</option>
                 <option value="best-value" className="text-gray-700 bg-white">Best Value</option>
+                <option value="price-asc" className="text-gray-700 bg-white">Low to High</option>
                 <option value="price-desc" className="text-gray-700 bg-white">High to Low</option>
               </select>
             </div>
