@@ -263,7 +263,12 @@ export default function ManageOffers() {
     if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
-      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
+      if (activeTab === 'inactive') {
+        const data = await getInactiveOffers();
+        setInactiveOffers(data || []);
+      } else {
+        setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
+      }
     } catch (err) { console.error(err); alert("Error deleting offer:" + err.message); }
   };
 
@@ -310,8 +315,8 @@ export default function ManageOffers() {
     <button
       onClick={() => handleTabChange(id)}
       className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${activeTab === id
-          ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
-          : "text-gray-600 hover:bg-gray-50"
+        ? "bg-blue-50 text-blue-600 border-r-4 border-blue-600"
+        : "text-gray-600 hover:bg-gray-50"
         }`}
     >
       {icon}
@@ -357,7 +362,6 @@ export default function ManageOffers() {
           {renderSidebarItem("inactive", <EyeOff size={20} />, "Inactive Offers")}
           {/* New Messages Item */}
           {renderSidebarItem("messages", <MessageSquare size={20} />, "Messages")}
-          {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
         </nav>
 
         <div className="p-4 border-t border-gray-200">
@@ -697,6 +701,11 @@ export default function ManageOffers() {
                       {user?.role === "admin" ? (
                         <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
                           <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 right-2 flex gap-1">
+                            <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
@@ -704,6 +713,11 @@ export default function ManageOffers() {
                             <AlertCircle size={24} />
                           </div>
                           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
+                          <div className="absolute top-2 right-2 flex gap-1">
+                            <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       )}
                       <div className="p-4 flex-1 flex flex-col">

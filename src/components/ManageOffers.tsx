@@ -42,7 +42,7 @@ import {
   getInactiveOffers, // Imported as requested
 } from "../services/offerService";
 
-import { getEnquiries, updateEnquiryStatus } from "../services/enquiryService";
+import { getEnquiries, updateEnquiryStatus, sendAccountCreationEmail } from "../services/enquiryService";
 
 // Auth Hook
 import useAuth from "../auth/useAuth";
@@ -91,6 +91,12 @@ export default function ManageOffers() {
   const [msgPage, setMsgPage] = useState(1);
   const [msgTotalPages, setMsgTotalPages] = useState(1);
   const [loadingMessages, setLoadingMessages] = useState(false);
+
+  // -- Account Creation Modal States --
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
+  const [sendingAccountEmail, setSendingAccountEmail] = useState(false);
   // --------------------
 
 
@@ -300,7 +306,12 @@ export default function ManageOffers() {
     if (!window.confirm("Are you sure you want to delete this offer?")) return;
     try {
       await deleteOffer(id, { headers: getAuthHeaders() });
-      setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
+      if (activeTab === 'inactive') {
+        const data = await getInactiveOffers();
+        setInactiveOffers(data || []);
+      } else {
+        setOffers(await getOffersByOwnerRestaurantId(selectedRestaurant));
+      }
     } catch (err) { console.error(err); alert("Error deleting offer:" + err.message); }
   };
 
@@ -332,6 +343,34 @@ export default function ManageOffers() {
       setIsUploading(false);
     }
   };
+
+  const handleOpenAccountModal = (id) => {
+    setSelectedEnquiryId(id);
+    setTempPassword("");
+    setShowAccountModal(true);
+  };
+
+  const handleSendAccountEmail = async () => {
+    if (!tempPassword) {
+      alert("Please enter a temporary password.");
+      return;
+    }
+
+    setSendingAccountEmail(true);
+    try {
+      await sendAccountCreationEmail(selectedEnquiryId, tempPassword);
+      alert("Account creation email sent successfully!");
+      setShowAccountModal(false);
+      setSelectedEnquiryId("");
+      setTempPassword("");
+    } catch (error) {
+      console.error("Error sending account creation email:", error);
+      alert("Failed to send email: " + error.message);
+    } finally {
+      setSendingAccountEmail(false);
+    }
+  };
+
   // Format dates for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -735,6 +774,11 @@ export default function ManageOffers() {
                       {user?.role === "admin" ? (
                         <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
                           <img src={o.imageUrl} alt={o.title} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 right-2 flex gap-1">
+                            <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="relative h-40 bg-gray-100 flex flex-col items-center justify-center text-center p-4">
@@ -742,6 +786,11 @@ export default function ManageOffers() {
                             <AlertCircle size={24} />
                           </div>
                           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider bg-white/50 px-2 py-1 rounded">Image Under Review</span>
+                          <div className="absolute top-2 right-2 flex gap-1">
+                            <button onClick={() => handleDeleteOffer(o.id)} className="bg-white/90 text-red-600 p-1.5 rounded-full hover:bg-red-600 hover:text-white transition shadow">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       )}
                       <div className="p-4 flex-1 flex flex-col">
@@ -873,6 +922,20 @@ export default function ManageOffers() {
                               )}
                             </td>
                             }
+                            {user?.role === "admin" && (
+                              <td className="px-6 py-4 text-right flex flex-col gap-2 items-end">
+                                <button
+                                  onClick={() => handleOpenAccountModal(msg._id)}
+                                  disabled={msg.status !== 'NEW'}
+                                  className={`text-xs border px-3 py-1.5 rounded-lg transition-colors shadow-sm font-medium w-full flex items-center justify-center gap-1 
+                                    ${msg.status === 'NEW'
+                                      ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
+                                      : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                >
+                                  <User size={12} /> Account Created
+                                </button>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -943,6 +1006,59 @@ export default function ManageOffers() {
           </div>
         </div>
       )}
+
+      {/* ===== ACCOUNT CREATION MODAL ===== */}
+      {showAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+          <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Send Account Details</h3>
+              <button
+                onClick={() => setShowAccountModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Enter the temporary password created for this user. An email will be sent to them with login instructions.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="text-xs font-semibold uppercase text-gray-500 block mb-1">Temporary Password</label>
+                <input
+                  type="text"
+                  value={tempPassword}
+                  onChange={(e) => setTempPassword(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter temp password..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowAccountModal(false)}
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                disabled={sendingAccountEmail}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendAccountEmail}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+                disabled={sendingAccountEmail}
+              >
+                {sendingAccountEmail ? <Loader2 size={16} className="animate-spin" /> : <User size={16} />}
+                {sendingAccountEmail ? "Sending..." : "Send Email"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

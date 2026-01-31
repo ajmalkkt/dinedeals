@@ -55,3 +55,17 @@ export async function sendEnquiryMessage(details, userName, email, phone) {
   if (!response.ok) throw new Error("Failed to send enquiry message");
   return await response.json();
 } 
+//add a function to send account creation email
+export async function sendAccountCreationEmail(enquiryId, tempPassword) {
+  const token = await getAuthToken();
+  const response = await fetch(`${ENQUIRY_API_URL}/account-creation/${enquiryId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ tempPassword }),
+  });
+  if (!response.ok) throw new Error("Failed to send account creation email");
+  return await response.json();
+} 
