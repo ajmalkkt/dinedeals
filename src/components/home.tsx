@@ -373,6 +373,10 @@ function Home() {
         <div className="container mx-auto text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-3">
             <p className="m-0">© {new Date().getFullYear()} BrowseQatar Offers Platform. All rights reserved.</p>
+            <span className="text-muted-foreground mr-2">|</span>
+            <a href="/terms" className="text-sm text-gray-500 hover:text-blue-600 transition-colors mr-3 underline">
+              Terms & Conditions
+            </a>
             <span className="text-muted-foreground">|</span>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <img src={'/meraki.webp'} alt="Meraki AI" className="w-6 h-6 object-contain" />

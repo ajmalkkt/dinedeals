@@ -12,6 +12,10 @@ import AdminRoute from "./auth/AdminRoute";
 import LoginModal from "./components/LoginModal";
 import ManageOffers from "./components/ManageOffers";
 import OfferDetails from "./components/OfferDetails";
+import TermsAndConditions from "./components/TermsAndConditions";
+import AdminUserGuide from "./components/AdminUserGuide";
+
+
 
 
 function App() {
@@ -27,8 +31,11 @@ function App() {
             <Route path="/about" element={<About />} />
             {/*<Route path="/login" element={<LoginPage />} /> */}
             <Route path="/make-offer" element={<AdminRoute><MakeOffer /></AdminRoute>} />
+            <Route path="/admin-guide" element={<ProtectedRoute><AdminUserGuide /></ProtectedRoute>} />
             <Route path="/favourites" element={<Favourites />} />
+
             <Route path="/manage-offers" element={<ProtectedRoute><ManageOffers /></ProtectedRoute>} />
+            <Route path="/terms" element={<TermsAndConditions />} />
           </Routes>
           {/* Toast container must be here */}
           <ToastContainer

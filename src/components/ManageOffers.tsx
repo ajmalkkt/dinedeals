@@ -25,7 +25,8 @@ import {
   CheckCircle,   // Added for Actions
   XCircle,       // Added for Status
   Clock,         // Added for Status
-  ChevronLeft    // Added for Pagination
+  ChevronLeft,    // Added for Pagination
+  HelpCircle     // Added for User Guide
 } from "lucide-react";
 
 // Mock Services (Keep your existing imports here)
@@ -415,7 +416,11 @@ export default function ManageOffers() {
           {user?.role === "admin" && renderSidebarItem("bulk", <UploadCloud size={20} />, "Bulk Import")}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 space-y-2">
+          <button onClick={() => navigate("/admin-guide")} className="flex items-center gap-3 text-gray-500 hover:text-blue-600 transition-colors w-full p-2 rounded-md hover:bg-blue-50">
+            <HelpCircle size={20} />
+            {isSidebarOpen && <span className="text-sm font-medium">User Guide</span>}
+          </button>
           <button onClick={() => navigate("/")} className="flex items-center gap-3 text-gray-500 hover:text-red-600 transition-colors w-full p-2 rounded-md hover:bg-red-50">
             <LogOut size={20} />
             {isSidebarOpen && <span className="text-sm font-medium">Exit Admin</span>}
