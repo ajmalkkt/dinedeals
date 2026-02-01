@@ -58,15 +58,15 @@ const AdminUserGuide = () => {
                         <ul className="space-y-3 text-gray-600 text-sm">
                             <li className="flex gap-2">
                                 <span className="font-bold text-orange-500">1.</span>
-                                <div><strong>Log In:</strong> Use the credentials provided by the BrowseQatar team. If you are an Admin, you have full access. Partners have restricted access.</div>
+                                <div><strong>Log In:</strong> Use the credentials provided by the BrowseQatar team. Partners will recieve an email with their login credentials and security/API key.</div>
                             </li>
                             <li className="flex gap-2">
                                 <span className="font-bold text-orange-500">2.</span>
-                                <div><strong>Reset Password:</strong> Use the "Forgot Password" option on the login screen. A reset link will be sent to your registered email. <span className="text-red-500 font-medium">Please check your Spam/Junk folder if it doesn't appear in your Inbox.</span></div>
+                                <div><strong>Reset Password:</strong> Use the "Forgot Password" option on the login screen. A reset link will be sent to your registered email. Click the link to reset your password.<span className="text-red-500 font-medium"> Please check your Spam/Junk folder if it doesn't appear in your Inbox.</span></div>
                             </li>
                             <li className="flex gap-2">
                                 <span className="font-bold text-orange-500">3.</span>
-                                <div><strong>API Key:</strong> Always ensure your session API Key is entered in the top bar to save changes.</div>
+                                <div>Use the temporary password shared earlier when prompted for reset.</div>
                             </li>
                         </ul>
                     </article>
@@ -88,6 +88,10 @@ const AdminUserGuide = () => {
                             </li>
                             <li className="flex gap-2">
                                 <span className="font-bold text-blue-500">3.</span>
+                                <div><strong>API Key:</strong> Always ensure your session API Key is entered in the top bar to save changes.</div>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold text-blue-500">4.</span>
                                 <div><strong>Edit/Delete:</strong> Admins and Owners can remove restaurants. Be careful, this also removes all associated offers.</div>
                             </li>
                         </ul>
@@ -110,6 +114,10 @@ const AdminUserGuide = () => {
                             </li>
                             <li className="flex gap-2">
                                 <span className="font-bold text-green-500">3.</span>
+                                <div><strong>API Key:</strong> Always ensure your session API Key is entered in the top bar to save changes.</div>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold text-green-500">4.</span>
                                 <div><strong>Inactive Status:</strong> Offers may go to "Inactive" for review or if expired. Check the Inactive tab to delete or reactivate them.</div>
                             </li>
                         </ul>
@@ -126,9 +134,17 @@ const AdminUserGuide = () => {
                                 <span className="font-bold text-purple-500">1.</span>
                                 <div><strong>Enquiries:</strong> Check the "Messages" tab for user enquiries.</div>
                             </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold text-purple-500">2.</span>
+                                <div>All communication with BrowsweQatar will be available in the messages tab for your reference.</div>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold text-purple-500">3.</span>
+                                <div>All messages are confidential. Do not share any information with anyone.</div>
+                            </li>
                             {user?.role === 'admin' && (
                                 <li className="flex gap-2">
-                                    <span className="font-bold text-purple-500">2.</span>
+                                    <span className="font-bold text-purple-500">3.</span>
                                     <div><strong>Account Creation:</strong> <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-bold">Admin Only</span> For new partners, use the "Account Created" button on their message to send them a temporary password automatically.</div>
                                 </li>
                             )}
