@@ -175,17 +175,19 @@ export default function MakeOfferOnline() {
             >
               <ArrowLeft size={20} />
             </button>
-            <div className="leading-tight">
+            <div className="leading-tight flex items-center gap-3">
+              <img src="/bqLogo.jpg" alt="Browse Qatar" className="h-5 w-auto hidden sm:block" />
               <h1 className="text-lg md:text-xl font-bold text-gray-800">Offer Management</h1>
             </div>
+
           </div>
 
           <div className="flex bg-gray-100 p-1 rounded-lg w-full md:w-auto">
             <button
               onClick={() => setActiveTab('activate')}
               className={`flex-1 md:flex-none justify-center px-4 py-1.5 text-sm font-semibold rounded-md transition-all flex items-center gap-2 ${activeTab === 'activate'
-                  ? "bg-white text-green-700 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                ? "bg-white text-green-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
                 }`}
             >
               <Power size={14} /> Activate
@@ -193,8 +195,8 @@ export default function MakeOfferOnline() {
             <button
               onClick={() => setActiveTab('deactivate')}
               className={`flex-1 md:flex-none justify-center px-4 py-1.5 text-sm font-semibold rounded-md transition-all flex items-center gap-2 ${activeTab === 'deactivate'
-                  ? "bg-white text-red-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                ? "bg-white text-red-600 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
                 }`}
             >
               <XCircle size={14} /> Inactivate

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { LayoutGrid, ArrowUp } from "lucide-react"; // Import Icons
 
 // Components
@@ -55,6 +56,7 @@ interface Offer {
 }
 
 function Home() {
+  const [searchParams] = useSearchParams();
   // --- Favorites Context ---
   const { favorites, toggleFavorite } = useFavoritesContext();
 
@@ -114,6 +116,15 @@ function Home() {
     };
     fetchData();
   }, []);
+
+  // Detect restaurant filter from URL
+  useEffect(() => {
+    const restaurantId = searchParams.get("restaurant");
+    if (restaurantId && restaurants.length > 0) {
+      handleSelectRestaurant(restaurantId);
+      scrollToOffers();
+    }
+  }, [searchParams, restaurants]);
 
   // 2. Track Scrolling to show/hide Floating Button
   useEffect(() => {

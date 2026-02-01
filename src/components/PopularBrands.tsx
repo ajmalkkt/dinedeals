@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { getAllRestaurants } from "../services/restaurantService";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 interface Props {
   brands?: string[];
@@ -112,10 +114,16 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
       onTouchStart={() => setIsPaused(true)}
       onTouchEnd={() => setIsPaused(false)}
     >
-      <div className="flex items-center gap-2 mb-1 px-1">
-        <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
-        <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
+      <div className="flex items-center justify-between mb-1 px-1">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500 animate-pulse" />
+          <h3 className="text-lg font-semibold animate-pulse brand-gradient-text">In the Spotlight</h3>
+        </div>
+        <Link to="/all-restaurants" className="text-xs font-semibold text-blue-500 hover:text-blue-600 hover:underline">
+          View All Restaurants &gt;
+        </Link>
       </div>
+
 
       <div className="relative group">
 

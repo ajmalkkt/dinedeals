@@ -17,7 +17,9 @@ const TermsAndConditions = () => {
                         >
                             <ArrowLeft size={20} />
                         </button>
+                        <img src="/bqLogo.jpg" alt="Browse Qatar" className="h-6 w-auto" />
                         <h1 className="text-xl font-bold text-gray-900 tracking-tight">Terms of Use</h1>
+
                     </div>
                 </div>
             </header>

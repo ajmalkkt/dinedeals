@@ -401,8 +401,9 @@ export default function ManageOffers() {
 
       {/* ===== Sidebar ===== */}
       <aside className={`bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${isSidebarOpen ? "w-64" : "w-20"}`}>
-        <div className="h-16 flex items-center justify-center border-b border-gray-200">
-          {isSidebarOpen ? <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span> : <span className="text-xl font-bold text-blue-600">M</span>}
+        <div className="h-16 flex items-center justify-center border-b border-gray-200 gap-2">
+          <img src="/bqLogo.jpg" alt="Logo" className="h-5 w-auto object-contain" />
+          {isSidebarOpen && <span className="text-xl font-bold text-blue-600 tracking-tight">Browse<span className="text-slate-800">Qatar</span></span>}
         </div>
 
         <nav className="flex-1 py-6 space-y-1">
@@ -439,6 +440,7 @@ export default function ManageOffers() {
             </button>
             <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab === "inactive" ? "Inactive Offers" : activeTab}</h2>
           </div>
+
 
           <div className="flex items-center gap-6">
             {/* API Key Input (Styled as session context) */}

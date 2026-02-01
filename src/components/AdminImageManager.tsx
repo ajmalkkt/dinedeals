@@ -398,8 +398,10 @@ export default function ManageOffers() {
                 <Menu size={20} />
               </button>
 
+              <img src="/bqLogo.jpg" alt="Browse Qatar" className="h-5 w-auto hidden sm:block" />
               <h2 className="text-lg font-semibold text-gray-700 capitalize truncate">{activeTab}</h2>
             </div>
+
 
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-red-400">Key</span>

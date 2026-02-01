@@ -58,7 +58,9 @@ export default function AboutUs() {
               <ArrowLeft size={20} />
               <span className="font-semibold">Back to Home</span>
             </button>
+            <img src="/bqLogo.jpg" alt="Browse Qatar" className="h-6 w-auto" />
           </div>
+
 
           <h1 className="text-lg md:text-2xl font-serif font-black text-green-900 leading-tight mb-2 text-center">
             No Waste... More Tasty!!!

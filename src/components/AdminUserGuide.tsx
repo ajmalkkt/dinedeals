@@ -28,6 +28,8 @@ const AdminUserGuide = () => {
                             <p className="text-xs text-gray-500 font-medium">Platform Guide & Documentation</p>
                         </div>
                     </div>
+                    <img src="/bqLogo.jpg" alt="Browse Qatar" className="h-10 w-auto opacity-80" />
+
                 </div>
             </header>
 
