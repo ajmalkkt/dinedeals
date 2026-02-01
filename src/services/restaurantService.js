@@ -48,25 +48,55 @@ async function fetchJsonWithFallback(url, fallbackUrl) {
   return [];
 }
 
+// Local cache state for deduplication and TTL
+let cacheState = {
+  data: null,
+  timestamp: 0,
+  pendingPromise: null
+};
+
 async function loadRestaurants() {
-  // Simple in-memory cache to prevent multiple components from triggering
-  // repeated network requests. TTL of 5 minutes.
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-  if (!globalThis.__restaurantCache) globalThis.__restaurantCache = { data: null, ts: 0 };
-  const cache = globalThis.__restaurantCache;
   const now = Date.now();
-  if (cache.data && now - cache.ts < CACHE_TTL_MS) {
+
+  // 1. Return cached data if valid
+  if (cacheState.data && (now - cacheState.timestamp < CACHE_TTL_MS)) {
     if (LOG_API_RESPONSE && typeof window !== 'undefined') {
       console.log('[RestaurantService] Returning cached restaurants');
     }
-    return cache.data;
+    return cacheState.data;
   }
-  // Fetch fresh data and populate cache
-  const data = await fetchJsonWithFallback(RESTAURANTS_URL, '/data/restaurants.json');
-  cache.data = data;
-  cache.ts = Date.now();
-  return data;
+
+  // 2. Return pending promise if already fetching (Deduplication)
+  if (cacheState.pendingPromise) {
+    if (LOG_API_RESPONSE && typeof window !== 'undefined') {
+      console.log('[RestaurantService] Waiting for pending restaurant fetch...');
+    }
+    return cacheState.pendingPromise;
+  }
+
+  // 3. Perform fresh fetch
+  cacheState.pendingPromise = (async () => {
+    try {
+      const data = await fetchJsonWithFallback(RESTAURANTS_URL, '/data/restaurants.json');
+
+      // Update cache only on successful-ish data (even if empty array from fallback)
+      cacheState.data = data;
+      cacheState.timestamp = Date.now();
+      return data;
+    } catch (err) {
+      console.error('[RestaurantService] Unexpected load error:', err);
+      // Don't cache the error, return empty array
+      return [];
+    } finally {
+      // Clear pending promise once done
+      cacheState.pendingPromise = null;
+    }
+  })();
+
+  return cacheState.pendingPromise;
 }
+
 
 export async function getAllRestaurants() {
   return await loadRestaurants();
