@@ -115,7 +115,7 @@ export default function AllRestaurants() {
                                 <div
                                     key={r.id}
                                     onClick={() => navigate(`/?restaurant=${r.id}`)}
-                                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group flex flex-col h-full"
+                                    className="bg-white rounded-xl shadow-sm border-2 border-gray-300 overflow-hidden hover:shadow-md transition-shadow cursor-pointer group flex flex-col h-full"
                                 >
                                     <div className="h-20 bg-gray-50 relative overflow-hidden flex items-center justify-center p-1">
                                         {/* Logo Display */}

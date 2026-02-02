@@ -11,6 +11,9 @@ const SHOW_OFFER_AVATAR = import.meta.env.VITE_SHOW_OFFER_AVATAR === "true";
 const LOG_API_RESPONSE = import.meta.env.VITE_LOG_API_RESPONSE === "true";
 const ENABLE_RANDOM_SORT = import.meta.env.VITE_ENABLE_RANDOM_SORT === "true";
 
+// Restaurant sorting configuration
+// Options: 'ID' (latest first), 'RATING' (highest first), 'LATEST' (updatedAt), 'NONE'
+const RESTAURANT_SORT_CONFIG = import.meta.env.VITE_RESTAURANT_SORT_CONFIG || 'ID';
 
 // Auth provider: KEYCLOAK or FIREBASE
 const AUTH_PROVIDER = (import.meta.env.VITE_AUTH_PROVIDER || "KEYCLOAK").toUpperCase();
@@ -144,5 +147,6 @@ export {
   AUTH_PROVIDER,
   ENABLE_SIGNUP,
   ENABLE_RANDOM_SORT,
+  RESTAURANT_SORT_CONFIG,
 };
 

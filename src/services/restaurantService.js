@@ -1,7 +1,7 @@
 // Service for restaurants. Mirrors the offers service API style.
 
 import { RESTAURANTS_URL, BULK_API_URL } from '../config/apiConfig';
-import { LOG_API_RESPONSE } from '../config/appConfig';
+import { LOG_API_RESPONSE, RESTAURANT_SORT_CONFIG } from '../config/appConfig';
 import { getAuthToken } from '../auth/firebaseClient';
 
 async function fetchJsonWithFallback(url, fallbackUrl) {
@@ -55,6 +55,64 @@ let cacheState = {
   pendingPromise: null
 };
 
+/**
+ * Sort restaurants based on configured mode
+ * @param {Array} restaurants - Array of restaurant objects
+ * @returns {Array} Sorted array of restaurants
+ */
+function sortRestaurants(restaurants) {
+  if (!RESTAURANT_SORT_CONFIG || !Array.isArray(restaurants)) {
+    return restaurants;
+  }
+
+  const mode = RESTAURANT_SORT_CONFIG.toUpperCase();
+
+  // Return unsorted if mode is NONE
+  if (mode === 'NONE') {
+    return restaurants;
+  }
+
+  return [...restaurants].sort((a, b) => {
+    let aVal, bVal;
+
+    // Determine which field to sort by based on mode
+    switch (mode) {
+      case 'ID':
+        aVal = a.id;
+        bVal = b.id;
+        break;
+
+      case 'RATING':
+        aVal = a.rating;
+        bVal = b.rating;
+        break;
+
+      case 'LATEST':
+        // Sort by updatedAt field
+        aVal = a.updatedAt ? new Date(a.updatedAt).getTime() : -Infinity;
+        bVal = b.updatedAt ? new Date(b.updatedAt).getTime() : -Infinity;
+        break;
+
+      default:
+        console.warn(`[RestaurantService] Unknown sort mode: ${mode}`);
+        return 0;
+    }
+
+    // Handle missing values
+    if (aVal === undefined || aVal === null) aVal = -Infinity;
+    if (bVal === undefined || bVal === null) bVal = -Infinity;
+
+    // Convert to numbers if needed (for ID and rating)
+    if (typeof aVal === 'string' && !isNaN(aVal)) aVal = parseFloat(aVal);
+    if (typeof bVal === 'string' && !isNaN(bVal)) bVal = parseFloat(bVal);
+
+    // Sort in descending order (highest/latest first)
+    if (aVal < bVal) return 1;
+    if (aVal > bVal) return -1;
+    return 0;
+  });
+}
+
 async function loadRestaurants() {
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
   const now = Date.now();
@@ -80,10 +138,13 @@ async function loadRestaurants() {
     try {
       const data = await fetchJsonWithFallback(RESTAURANTS_URL, '/data/restaurants.json');
 
+      // Sort restaurants based on configuration
+      const sortedData = sortRestaurants(data);
+
       // Update cache only on successful-ish data (even if empty array from fallback)
-      cacheState.data = data;
+      cacheState.data = sortedData;
       cacheState.timestamp = Date.now();
-      return data;
+      return sortedData;
     } catch (err) {
       console.error('[RestaurantService] Unexpected load error:', err);
       // Don't cache the error, return empty array

@@ -164,7 +164,7 @@ export default function PopularBrands({ brands = [], onSelectRestaurant }: Props
             >
               <div
                 className={`
-                  w-16 h-16 rounded-full bg-white flex items-center justify-center border-2 overflow-hidden shadow-sm
+                  w-16 h-16 rounded-full bg-red-400 flex items-center justify-center border-2 overflow-hidden shadow-sm
                   ${selectedRestaurant === src.id
                     ? "border-blue-600 ring-2 ring-blue-100 ring-offset-1"
                     : "border-gray-100 hover:border-blue-200"
