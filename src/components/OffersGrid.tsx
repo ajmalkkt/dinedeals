@@ -328,7 +328,7 @@ const OffersGrid = ({
       <div className="bg-background w-full flex flex-col items-center justify-center py-8 px-0">
         <div className="text-center">
           <h3 className="text-2xl font-semibold mb-1">No offers found</h3>
-          <p className="text-muted-foreground">Try adjusting your filters or search query to find more restaurant offers.</p>
+          <p className="text-muted-foreground">Try adjusting your filters, sort by or search query to find more restaurant offers.</p>
         </div>
       </div>
     );

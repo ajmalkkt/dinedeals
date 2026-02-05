@@ -144,19 +144,13 @@ const SecondaryNav: React.FC<Props> = ({
             selectedCuisine === null ? "scale-105" : "hover:scale-105"
           }`}
         >
-          <div
-            className={`w-14 h-14 flex items-center justify-center rounded-full shadow mb-1 text-base font-bold ${
-              selectedCuisine === null
-                ? "brand-gradient-bg text-blue ring-4 ring-blue-400"
-                : "bg-orange-100 text-gray-600 hover:bg-orange-100"
-            }`}
-          >
           <img
             src="/images/cuisines/All.jpg"
             alt="All Offers"
-            className={`w-14 h-14 object-contain rounded-full shadow mb-2 `}
+            className={`w-14 h-14 object-contain rounded-full shadow mb-1 ${
+              selectedCuisine === null ? "ring-4 ring-blue-400" : ""
+            }`}
           />
-          </div>
           <span
             className={`text-sm font-medium ${
               selectedCuisine === null ? "text-blue-600" : "text-gray-700"

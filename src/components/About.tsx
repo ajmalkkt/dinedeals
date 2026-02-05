@@ -8,12 +8,12 @@ export default function AboutUs() {
 
   // Cuisine images to rotate in the banner
   const cuisineImages = [
-    "/images/cuisines/Pizza.png",
-    "/images/cuisines/Burger.png",
-    "/images/cuisines/Biryani.png",
-    "/images/cuisines/Shawarma.png",
-    "/images/cuisines/Chinese.png",
-    "/images/cuisines/Desserts.png",
+    { name: "Pizza", img: "/images/cuisines/Pizza.png" },
+    { name: "Burger", img: "/images/cuisines/Burger.png" },
+    { name: "Arabic", img: "/images/cuisines/ArabicDishes.png" },
+    { name: "Ice Cream", img: "/images/cuisines/Ice Cream.png" },
+    { name: "Chinese", img: "/images/cuisines/Chinese.png" },
+    { name: "Dessert", img: "/images/cuisines/Desserts.png" },
   ];
 
   const [currentImage, setCurrentImage] = useState(0);
@@ -31,13 +31,13 @@ export default function AboutUs() {
 
         {/* Animated Top Banner */}
         <div className="relative h-56 w-full overflow-hidden">
-          {cuisineImages.map((url, index) => (
+          {cuisineImages.map((c, index) => (
             <div
               key={index}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImage ? "opacity-100" : "opacity-0"
                 }`}
               style={{
-                backgroundImage: `url(${url})`,
+                backgroundImage: `url(${c.img})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
@@ -137,14 +137,7 @@ export default function AboutUs() {
 
           {/* Cuisine Icons */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 mt-6">
-            {[
-              { name: "Pizza", img: "/images/cuisines/Pizza.png" },
-              { name: "Burger", img: "/images/cuisines/Burger.png" },
-              { name: "Biryani", img: "/images/cuisines/Biryani.png" },
-              { name: "Ice Cream", img: "/images/cuisines/Ice Cream.png" },
-              { name: "Chinese", img: "/images/cuisines/Chinese.png" },
-              { name: "Dessert", img: "/images/cuisines/Desserts.png" },
-            ].map((e) => (
+            {cuisineImages.map((e) => (
               <div key={e.name} className="flex flex-col items-center justify-center">
                 <img
                   src={e.img}
