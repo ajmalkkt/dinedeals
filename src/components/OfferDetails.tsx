@@ -154,9 +154,11 @@ const OfferDetails = () => {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end">
-                                <span className="text-gray-400 line-through text-sm">QR {offer.originalPrice}</span>
+                                {offer.originalPrice !== offer.discountedPrice && (
+                                    <span className="text-gray-400 line-through text-sm">QR {offer.originalPrice}</span>
+                                )}
                                 <span className="text-3xl font-bold text-blue-600">QR {offer.discountedPrice}</span>
-                                {!SHOW_DISCOUNTED_PRICE && (
+                                {!SHOW_DISCOUNTED_PRICE && offer.originalPrice !== offer.discountedPrice && (
                                     <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded mt-1">
                                         {((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF
                                     </span>

@@ -108,7 +108,7 @@ const OfferCard: React.FC<OfferCardProps> = ({
             }}
           />
           <div className="absolute top-2 right-2 bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-xs font-semibold">
-            {SHOW_DISCOUNTED_PRICE
+            {SHOW_DISCOUNTED_PRICE || offer.originalPrice === offer.discountedPrice
               ? <span className="text-lg font-bold text-white">QR-{offer.discountedPrice}</span>
               : <span className="text-lg font-bold text-white">{((1 - offer.discountedPrice / offer.originalPrice) * 100).toFixed(0)}% OFF</span>}
           </div>
@@ -159,9 +159,11 @@ const OfferCard: React.FC<OfferCardProps> = ({
                 {restaurantName}
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-sm line-through text-muted-foreground">
-                  QR-{offer.originalPrice}
-                </span>
+                {offer.originalPrice !== offer.discountedPrice && (
+                  <span className="text-sm line-through text-muted-foreground">
+                    QR-{offer.originalPrice}
+                  </span>
+                )}
                 <span className="font-semibold text-sm">
                   QR-{offer.discountedPrice}
                 </span>
@@ -341,23 +343,23 @@ const OffersGrid = ({
           const restaurant = restaurants.find((r) => r.id === offer.restaurantId);
           return (
             <React.Fragment key={offer.id}>
-      
-            {/* SEO Schema for Google */}
-            <script type="application/ld+json">
-              {JSON.stringify(generateOfferSchema(offer, restaurant))}
-            </script>
-            <OfferCard
-              key={offer.id}
-              offer={offer}
-              restaurantName={restaurant ? restaurant.name : getRestaurantName(offer.restaurantId)}
-              restaurantAddress={restaurant ? restaurant.address : getRestaurantAddress(offer.restaurantId)}
-              restaurantPhone={restaurant ? restaurant.phone : getRestaurantPhone(offer.restaurantId)}
-              restaurantLogo={getRestaurantLogo(offer.restaurantId)}
-              showOfferDetail={showOfferDetail}
-              showOfferAvatar={SHOW_OFFER_AVATAR}
-              isFavorite={favorites.includes(offer.id)}
-              onToggleFavorite={onToggleFavorite}
-            />
+
+              {/* SEO Schema for Google */}
+              <script type="application/ld+json">
+                {JSON.stringify(generateOfferSchema(offer, restaurant))}
+              </script>
+              <OfferCard
+                key={offer.id}
+                offer={offer}
+                restaurantName={restaurant ? restaurant.name : getRestaurantName(offer.restaurantId)}
+                restaurantAddress={restaurant ? restaurant.address : getRestaurantAddress(offer.restaurantId)}
+                restaurantPhone={restaurant ? restaurant.phone : getRestaurantPhone(offer.restaurantId)}
+                restaurantLogo={getRestaurantLogo(offer.restaurantId)}
+                showOfferDetail={showOfferDetail}
+                showOfferAvatar={SHOW_OFFER_AVATAR}
+                isFavorite={favorites.includes(offer.id)}
+                onToggleFavorite={onToggleFavorite}
+              />
             </React.Fragment>
           );
         })}
