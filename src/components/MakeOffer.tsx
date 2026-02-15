@@ -190,7 +190,7 @@ export default function MakeOfferOnline() {
                 : "text-gray-500 hover:text-gray-700"
                 }`}
             >
-              <Power size={14} /> Activate
+              <Power size={14} /> Inactive Offers
             </button>
             <button
               onClick={() => setActiveTab('deactivate')}
@@ -199,7 +199,7 @@ export default function MakeOfferOnline() {
                 : "text-gray-500 hover:text-gray-700"
                 }`}
             >
-              <XCircle size={14} /> Inactivate
+              <XCircle size={14} /> Active Offers
             </button>
           </div>
         </div>
