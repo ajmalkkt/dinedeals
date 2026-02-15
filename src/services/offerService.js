@@ -105,6 +105,30 @@ export async function uploadOffer(formData, options = {}) {
   }
 }
 
+// Update an offer
+export async function updateOffer(id, formData, options = {}) {
+  try {
+    const token = await getAdminAuthToken();
+    const res = await fetch(`${OFFERS_URL}/${id}`, {
+      method: 'PUT',
+      body: formData,
+      headers: {
+        ...(options.headers || {}),
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      const errorData = await res.json();
+      const errorMessage = errorData.message || 'Failed to update offer';
+      throw new Error(errorMessage);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error('[OfferService] updateOffer error:', err);
+    throw err;
+  }
+}
+
 // Delete offer by ID
 export async function deleteOffer(id, options = {}) {
   try {
@@ -220,4 +244,5 @@ export default {
   activateOffers,
   getInactiveOffers,
   searchOffersByCuisine,
+  updateOffer,
 };

@@ -106,7 +106,7 @@ export default function AllRestaurants() {
                 ) : filteredRestaurants.length === 0 ? (
                     <div className="text-center py-20 text-gray-500">
                         <Utensils size={48} className="mx-auto mb-4 opacity-20" />
-                        <p className="text-lg font-medium">No restaurants found matching "{searchTerm}"</p>
+                        <p className="text-lg font-medium">No restaurants found matching {searchTerm ? `"${searchTerm}"` : ""}</p>
                     </div>
                 ) : (
                     <>
