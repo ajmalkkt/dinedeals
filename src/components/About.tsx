@@ -115,7 +115,7 @@ export default function AboutUs() {
             Affordable Dining Deals for Every Budget
           </h3>
           <p className="text-gray-700 leading-relaxed mb-4">
-            We feature cheap food offers in Qatar along with budget-friendly options from
+            We feature low price food offers in Qatar along with budget-friendly options from
             QAR 5 to 20, making it easy to enjoy affordable restaurants in Doha.
           </p>
 

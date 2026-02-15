@@ -32,6 +32,8 @@ interface Offer {
   validTo: string;
   active?: boolean;
   ownerLogin?: string;
+  originalPrice?: string | number;
+  discountedPrice?: string | number;
 }
 
 // --- Placeholder Services ---
@@ -55,8 +57,8 @@ export default function MakeOfferOnline() {
   const [selectedOffers, setSelectedOffers] = useState<number[]>([]);
 
 
-  // Form Inputs (Default Date set to +7 Days)
-  const [validTo, setValidTo] = useState<Date | null>(getOneWeekFromNow());
+  // Form Inputs (Default Date set to NULL now as per user request)
+  const [validTo, setValidTo] = useState<Date | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [filterText, setFilterText] = useState("");
 
@@ -103,6 +105,14 @@ export default function MakeOfferOnline() {
     }
   };
 
+  const handlePriceChange = (id: number, field: 'originalPrice' | 'discountedPrice', value: string) => {
+    setOffers(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o));
+  };
+
+  const handleOfferDateChange = (id: number, value: string) => {
+    setOffers(prev => prev.map(o => o.id === id ? { ...o, validTo: value } : o));
+  };
+
   const handleSubmit = async () => {
     if (!apiKey.trim()) {
       toast.warning("Please enter your API Key.");
@@ -112,17 +122,24 @@ export default function MakeOfferOnline() {
       toast.warning(`Please select at least one offer.`);
       return;
     }
-    if (activeTab === 'activate' && !validTo) {
-      toast.warning("Please select a new expiry date.");
-      return;
-    }
 
     setIsSubmitting(true);
     try {
       if (activeTab === 'activate') {
+        // Collect updates for selected offers
+        const updates = offers
+          .filter(o => selectedOffers.includes(o.id))
+          .map(o => ({
+            id: o.id,
+            originalPrice: o.originalPrice,
+            discountedPrice: o.discountedPrice,
+            validTo: o.validTo ? o.validTo.split("T")[0] : null
+          }));
+
         await activateOffers({
           offerIds: selectedOffers,
-          validTill: validTo ? validTo.toISOString().split("T")[0] : undefined,
+          validTill: validTo ? `${validTo.getFullYear()}-${String(validTo.getMonth() + 1).padStart(2, '0')}-${String(validTo.getDate()).padStart(2, '0')}` : undefined,
+          updates,
           apiKey,
         });
         toast.success("Offers activated successfully!");
@@ -135,8 +152,8 @@ export default function MakeOfferOnline() {
       }
 
       setSelectedOffers([]);
-      // Reset date to one week ahead again
-      setValidTo(getOneWeekFromNow());
+      // Reset date to null
+      setValidTo(null);
       setApiKey("");
       fetchData();
     } catch (err: any) {
@@ -269,6 +286,7 @@ export default function MakeOfferOnline() {
                     </th>
                     <th className="px-4 py-3">Offer Details</th>
                     <th className="px-4 py-3 whitespace-nowrap">Restaurant</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Price (QAR)</th>
                     <th className="px-4 py-3 whitespace-nowrap">Owner</th>
                     <th className="px-4 py-3 text-right whitespace-nowrap">Validity</th>
                   </tr>
@@ -310,11 +328,52 @@ export default function MakeOfferOnline() {
                           <span className="text-xs text-gray-400">ID: {offer.restaurantId}</span>
                         </div>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {activeTab === 'activate' ? (
+                          <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-gray-400 w-8">ORIG:</span>
+                              <input
+                                type="text"
+                                value={offer.originalPrice || ""}
+                                onChange={(e) => handlePriceChange(offer.id, 'originalPrice', e.target.value)}
+                                className="w-16 p-1 border rounded text-[10px] h-6 focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-gray-400 w-8">DISC:</span>
+                              <input
+                                type="text"
+                                value={offer.discountedPrice || ""}
+                                onChange={(e) => handlePriceChange(offer.id, 'discountedPrice', e.target.value)}
+                                className="w-16 p-1 border rounded text-[10px] h-6 focus:ring-1 focus:ring-blue-500 font-bold text-green-600"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-gray-400 line-through">{offer.originalPrice}</span>
+                            <span className="text-xs font-bold text-green-600">{offer.discountedPrice}</span>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                         {offer.ownerLogin || "N/A"}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-500 font-mono text-xs whitespace-nowrap">
-                        {offer.validTo ? offer.validTo.split("T")[0] : "No Expiry"}
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {activeTab === 'activate' ? (
+                          <input
+                            type="date"
+                            value={offer.validTo ? offer.validTo.split("T")[0] : ""}
+                            onChange={(e) => handleOfferDateChange(offer.id, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-gray-50 border border-gray-300 text-gray-800 text-[10px] rounded focus:ring-blue-500 focus:border-blue-500 p-1 outline-none"
+                          />
+                        ) : (
+                          <span className="text-gray-500 font-mono text-xs">
+                            {offer.validTo ? offer.validTo.split("T")[0] : "No Expiry"}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
