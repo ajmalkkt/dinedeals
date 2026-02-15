@@ -691,8 +691,8 @@ export default function ManageOffers() {
           {activeTab === "offers" && (
             <div className="space-y-6">
               {/* Filter Bar */}
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 md:items-end justify-between">
+                <div className="flex items-end gap-2 w-full md:w-auto">
                   <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Store size={20} /></div>
                   <div className="flex-1">
                     <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
@@ -710,7 +710,7 @@ export default function ManageOffers() {
                 {selectedRestaurant && (
                   <button
                     onClick={toggleAddOfferForm}
-                    className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
+                    className="w-full md:w-auto flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm whitespace-nowrap"
                   >
                     {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
                     {showAddOfferForm ? "Cancel" : "Add New Offer"}

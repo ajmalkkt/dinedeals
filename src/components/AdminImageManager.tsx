@@ -560,7 +560,7 @@ export default function ManageOffers() {
                   className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm"
                 >
                   {showAddRestaurantForm ? <X size={18} /> : <Plus size={18} />}
-                  {showAddRestaurantForm ? "Cancel" : "Add New"}
+                  {showAddRestaurantForm ? "Cancel" : "Add New Restaurant"}
                 </button>
               </div>
 
@@ -629,7 +629,7 @@ export default function ManageOffers() {
           {activeTab === "offers" && (
             <div className="space-y-4 md:space-y-6">
               {/* ... (Existing Offers Tab Content) ... */}
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 md:items-end">
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 font-semibold block mb-1">SELECT RESTAURANT</label>
                   <select
@@ -642,9 +642,9 @@ export default function ManageOffers() {
                   </select>
                 </div>
                 {selectedRestaurant && (
-                  <button onClick={toggleAddOfferForm} className="w-full md:w-auto self-end bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm">
+                  <button onClick={toggleAddOfferForm} className="w-full md:w-auto flex-shrink-0 self-end bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition shadow-sm whitespace-nowrap">
                     {showAddOfferForm ? <X size={18} /> : <Plus size={18} />}
-                    {showAddOfferForm ? "Cancel" : "Add Offer"}
+                    {showAddOfferForm ? "Cancel" : "Add New Offer"}
                   </button>
                 )}
               </div>
